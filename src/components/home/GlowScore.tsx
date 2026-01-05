@@ -1,14 +1,8 @@
 import { useUser } from '@/contexts/UserContext';
 
-interface GlowScoreProps {
-  skin: number;
-  hair: number;
-  nutrition: number;
-}
-
-export const GlowScore = ({ skin, hair, nutrition }: GlowScoreProps) => {
-  const { t } = useUser();
-  const overall = Math.round((skin + hair + nutrition) / 3);
+export const GlowScore = () => {
+  const { t, glowScore } = useUser();
+  const { skin, hair, nutrition, overall } = glowScore;
   const circumference = 2 * Math.PI * 45;
   const offset = circumference - (overall / 100) * circumference;
 

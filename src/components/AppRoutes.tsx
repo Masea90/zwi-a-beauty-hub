@@ -33,8 +33,8 @@ export function AppRoutes() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { user, isLoading: userLoading } = useUser();
 
-  // Show loading while auth is being determined
-  if (authLoading) {
+  // Show loading while auth or user data is being determined
+  if (authLoading || userLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">

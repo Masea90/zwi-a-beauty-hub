@@ -2,20 +2,20 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mail, Lock, Eye, EyeOff, UserPlus, LogIn, Users } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, UserPlus, LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, signUp, allUsers } = useAuth();
+  const { login, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showSwitchAccount, setShowSwitchAccount] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email.trim() || !password.trim()) {
@@ -23,28 +23,31 @@ const LoginPage = () => {
       return;
     }
 
-    if (isSignUp) {
-      const result = signUp(email, password);
-      if (result.success) {
-        toast.success('Account created! Welcome aboard 🌿');
-        navigate('/');
-      } else {
-        toast.error(result.error || 'Sign up failed');
-      }
-    } else {
-      const result = login(email, password);
-      if (result.success) {
-        toast.success('Welcome back! 🌿');
-        navigate('/');
-      } else {
-        toast.error(result.error || 'Login failed');
-      }
-    }
-  };
+    setIsSubmitting(true);
 
-  const handleQuickLogin = (userEmail: string) => {
-    setEmail(userEmail);
-    setShowSwitchAccount(false);
+    try {
+      if (isSignUp) {
+        const result = await signUp(email, password);
+        if (result.success) {
+          toast.success('Account created! Welcome aboard 🌿');
+          navigate('/');
+        } else {
+          toast.error(result.error || 'Sign up failed');
+        }
+      } else {
+        const result = await login(email, password);
+        if (result.success) {
+          toast.success('Welcome back! 🌿');
+          navigate('/');
+        } else {
+          toast.error(result.error || 'Login failed');
+        }
+      }
+    } catch (error) {
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -86,6 +89,7 @@ const LoginPage = () => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className="h-12 pl-12 rounded-2xl"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -100,6 +104,7 @@ const LoginPage = () => {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 className="h-12 pl-12 pr-12 rounded-2xl"
+                disabled={isSubmitting}
               />
               <button
                 type="button"
@@ -118,8 +123,11 @@ const LoginPage = () => {
           <Button
             type="submit"
             className="w-full h-14 rounded-2xl text-lg font-medium bg-gradient-olive"
+            disabled={isSubmitting}
           >
-            {isSignUp ? (
+            {isSubmitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isSignUp ? (
               <>
                 <UserPlus className="w-5 h-5 mr-2" />
                 Create Account
@@ -132,39 +140,6 @@ const LoginPage = () => {
             )}
           </Button>
         </form>
-
-        {/* Switch Account */}
-        {allUsers.length > 0 && !isSignUp && (
-          <div className="mt-6">
-            <button
-              onClick={() => setShowSwitchAccount(!showSwitchAccount)}
-              className="w-full flex items-center justify-center gap-2 text-sm text-primary font-medium"
-            >
-              <Users className="w-4 h-4" />
-              Switch Account
-            </button>
-            
-            {showSwitchAccount && (
-              <div className="mt-3 bg-card rounded-2xl border border-border overflow-hidden">
-                {allUsers.map(user => (
-                  <button
-                    key={user.id}
-                    onClick={() => handleQuickLogin(user.email)}
-                    className="w-full flex items-center gap-3 p-4 hover:bg-secondary/50 transition-colors border-b border-border last:border-b-0"
-                  >
-                    <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-lg">
-                      👤
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-foreground">{user.email.split('@')[0]}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Footer */}
@@ -174,6 +149,7 @@ const LoginPage = () => {
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-primary font-medium"
+            disabled={isSubmitting}
           >
             {isSignUp ? 'Sign In' : 'Sign Up'}
           </button>

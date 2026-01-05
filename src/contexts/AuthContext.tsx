@@ -1,8 +1,7 @@
-// Auth context for local user authentication
+// Auth context with Supabase authentication
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-const AUTH_STORAGE_KEY = 'maseya-auth';
-const USERS_STORAGE_KEY = 'maseya-users';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface AuthUser {
   id: string;
@@ -10,95 +9,68 @@ export interface AuthUser {
   createdAt: string;
 }
 
-interface AuthState {
-  currentUserId: string | null;
-  users: AuthUser[];
-}
-
 interface AuthContextType {
   currentUser: AuthUser | null;
-  allUsers: AuthUser[];
+  session: Session | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => { success: boolean; error?: string };
-  signUp: (email: string, password: string) => { success: boolean; error?: string };
-  logout: () => void;
-  switchAccount: () => void;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 }
-
-const getStoredAuth = (): AuthState => {
-  try {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    console.warn('Failed to read auth from localStorage');
-  }
-  return { currentUserId: null, users: [] };
-};
-
-const getStoredPasswords = (): Record<string, string> => {
-  try {
-    const stored = localStorage.getItem(USERS_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    console.warn('Failed to read users from localStorage');
-  }
-  return {};
-};
-
-const generateUserId = (): string => {
-  return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [authState, setAuthState] = useState<AuthState>(getStoredAuth);
-  const [passwords, setPasswords] = useState<Record<string, string>>(getStoredPasswords);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Persist auth state
   useEffect(() => {
-    try {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
-    } catch (e) {
-      console.warn('Failed to save auth to localStorage');
-    }
-  }, [authState]);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
 
-  // Persist passwords (in real app, this would be hashed on backend)
-  useEffect(() => {
-    try {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(passwords));
-    } catch (e) {
-      console.warn('Failed to save users to localStorage');
-    }
-  }, [passwords]);
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
 
-  const currentUser = authState.users.find(u => u.id === authState.currentUserId) || null;
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const login = (email: string, password: string): { success: boolean; error?: string } => {
+  const currentUser: AuthUser | null = user ? {
+    id: user.id,
+    email: user.email || '',
+    createdAt: user.created_at,
+  } : null;
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     const normalizedEmail = email.toLowerCase().trim();
     
-    // Check if user exists
-    const existingUser = authState.users.find(u => u.email === normalizedEmail);
-    if (!existingUser) {
-      return { success: false, error: 'No account found with this email' };
+    const { error } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
+
+    if (error) {
+      if (error.message.includes('Invalid login credentials')) {
+        return { success: false, error: 'Invalid email or password' };
+      }
+      return { success: false, error: error.message };
     }
 
-    // Check password
-    if (passwords[existingUser.id] !== password) {
-      return { success: false, error: 'Incorrect password' };
-    }
-
-    // Login successful
-    setAuthState(prev => ({ ...prev, currentUserId: existingUser.id }));
     return { success: true };
   };
 
-  const signUp = (email: string, password: string): { success: boolean; error?: string } => {
+  const signUp = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Validate email format
@@ -111,46 +83,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { success: false, error: 'Password must be at least 6 characters' };
     }
 
-    // Check if email already exists
-    const existingUser = authState.users.find(u => u.email === normalizedEmail);
-    if (existingUser) {
-      return { success: false, error: 'An account with this email already exists' };
-    }
+    const redirectUrl = `${window.location.origin}/`;
 
-    // Create new user
-    const newUser: AuthUser = {
-      id: generateUserId(),
+    const { error } = await supabase.auth.signUp({
       email: normalizedEmail,
-      createdAt: new Date().toISOString(),
-    };
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+      },
+    });
 
-    setPasswords(prev => ({ ...prev, [newUser.id]: password }));
-    setAuthState(prev => ({
-      currentUserId: newUser.id,
-      users: [...prev.users, newUser],
-    }));
+    if (error) {
+      if (error.message.includes('already registered')) {
+        return { success: false, error: 'An account with this email already exists' };
+      }
+      return { success: false, error: error.message };
+    }
 
     return { success: true };
   };
 
-  const logout = () => {
-    setAuthState(prev => ({ ...prev, currentUserId: null }));
-  };
-
-  const switchAccount = () => {
-    // Just logout - user can then login with different account
-    logout();
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   return (
     <AuthContext.Provider value={{
       currentUser,
-      allUsers: authState.users,
-      isAuthenticated: !!currentUser,
+      session,
+      isAuthenticated: !!user,
+      isLoading,
       login,
       signUp,
       logout,
-      switchAccount,
     }}>
       {children}
     </AuthContext.Provider>

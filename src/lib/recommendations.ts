@@ -1,6 +1,17 @@
 import { UserProfile } from '@/contexts/UserContext';
 import { TranslationKey } from '@/lib/i18n';
 
+// Product images
+import weledaSkinFood from '@/assets/products/weleda-skin-food.jpg';
+import paiRosehipOil from '@/assets/products/pai-rosehip-oil.jpg';
+import ordinaryNiacinamide from '@/assets/products/ordinary-niacinamide.jpg';
+import olaplexHairOil from '@/assets/products/olaplex-hair-oil.jpg';
+import ceraveCleanser from '@/assets/products/cerave-cleanser.jpg';
+import kloraneHairMask from '@/assets/products/klorane-hair-mask.jpg';
+import nuxeOil from '@/assets/products/nuxe-oil.jpg';
+import renSerum from '@/assets/products/ren-serum.jpg';
+import moroccanoilTreatment from '@/assets/products/moroccanoil-treatment.jpg';
+
 export interface Product {
   id: number;
   name: string;
@@ -11,8 +22,8 @@ export interface Product {
   targetConcerns: string[];
   targetHairTypes: string[];
   targetGoals: string[];
-  avoidFor: string[]; // skin concerns where this should be avoided
-  harshIngredients: string[]; // ingredients that make it unsuitable for sensitive skin
+  avoidFor: string[];
+  harshIngredients: string[];
   price: string;
   affiliateUrl?: string;
   description: TranslationKey;
@@ -23,157 +34,151 @@ export interface RecommendedProduct extends Product {
   matchReasons: TranslationKey[];
 }
 
-// Product catalog - bio, natural, skin-safe products
+// Real product catalog - clean, bio, natural beauty products
 export const productCatalog: Product[] = [
   {
     id: 1,
-    name: 'Gentle Aloe Vera Cleanser',
+    name: 'Skin Food Original',
     brand: 'Weleda',
-    image: '🌿',
+    image: weledaSkinFood,
     category: 'skin',
-    tags: ['bio', 'natural', 'vegan'],
-    targetConcerns: ['sensitivity', 'dryness', 'dullness'],
+    tags: ['natural', 'organic'],
+    targetConcerns: ['dryness', 'sensitivity'],
     targetHairTypes: [],
     targetGoals: ['clearskin', 'natural'],
-    avoidFor: [],
+    avoidFor: ['oiliness'],
     harshIngredients: [],
-    price: '€12.99',
-    description: 'aloeCleanserDesc',
+    price: '€12.95',
+    affiliateUrl: 'https://www.weleda.com',
+    description: 'weledaSkinFoodDesc',
   },
   {
     id: 2,
-    name: 'Organic Rosehip Oil',
+    name: 'Rosehip BioRegenerate Oil',
     brand: 'Pai Skincare',
-    image: '🌹',
+    image: paiRosehipOil,
     category: 'skin',
-    tags: ['organic', 'natural', 'vegan', 'cruelty-free'],
-    targetConcerns: ['aging', 'dryness', 'hyperpigmentation', 'dullness'],
+    tags: ['organic', 'vegan', 'cruelty-free'],
+    targetConcerns: ['aging', 'hyperpigmentation', 'dullness', 'dryness'],
     targetHairTypes: [],
     targetGoals: ['clearskin', 'natural'],
     avoidFor: ['oiliness', 'acne'],
     harshIngredients: [],
-    price: '€24.00',
-    description: 'rosehipOilDesc',
+    price: '€26.00',
+    affiliateUrl: 'https://www.paiskincare.com',
+    description: 'paiRosehipDesc',
   },
   {
     id: 3,
-    name: 'Argan Hair Repair Mask',
-    brand: 'Maison Bio',
-    image: '✨',
+    name: 'Niacinamide 10% + Zinc 1%',
+    brand: 'The Ordinary',
+    image: ordinaryNiacinamide,
+    category: 'skin',
+    tags: ['vegan', 'cruelty-free'],
+    targetConcerns: ['oiliness', 'acne', 'pores'],
+    targetHairTypes: [],
+    targetGoals: ['clearskin'],
+    avoidFor: [],
+    harshIngredients: [],
+    price: '€5.80',
+    affiliateUrl: 'https://theordinary.com',
+    description: 'ordinaryNiacinamideDesc',
+  },
+  {
+    id: 4,
+    name: 'No.7 Bonding Oil',
+    brand: 'Olaplex',
+    image: olaplexHairOil,
     category: 'hair',
-    tags: ['bio', 'natural', 'cruelty-free'],
+    tags: ['vegan', 'cruelty-free'],
+    targetConcerns: [],
+    targetHairTypes: ['straight', 'wavy', 'curly', 'coily'],
+    targetGoals: ['healthyhair'],
+    avoidFor: [],
+    harshIngredients: [],
+    price: '€28.00',
+    affiliateUrl: 'https://olaplex.com',
+    description: 'olaplexOilDesc',
+  },
+  {
+    id: 5,
+    name: 'Hydrating Cleanser',
+    brand: 'CeraVe',
+    image: ceraveCleanser,
+    category: 'skin',
+    tags: ['cruelty-free'],
+    targetConcerns: ['dryness', 'sensitivity'],
+    targetHairTypes: [],
+    targetGoals: ['clearskin', 'routine'],
+    avoidFor: [],
+    harshIngredients: [],
+    price: '€9.50',
+    affiliateUrl: 'https://www.cerave.com',
+    description: 'ceraveCleanserDesc',
+  },
+  {
+    id: 6,
+    name: 'Mango Butter Hair Mask',
+    brand: 'Klorane',
+    image: kloraneHairMask,
+    category: 'hair',
+    tags: ['natural', 'vegan'],
     targetConcerns: [],
     targetHairTypes: ['curly', 'coily', 'wavy'],
     targetGoals: ['healthyhair', 'natural'],
     avoidFor: [],
     harshIngredients: [],
-    price: '€18.50',
-    description: 'arganMaskDesc',
-  },
-  {
-    id: 4,
-    name: 'Chamomile Soothing Serum',
-    brand: 'Dr. Hauschka',
-    image: '🌼',
-    category: 'skin',
-    tags: ['natural', 'organic', 'cruelty-free'],
-    targetConcerns: ['sensitivity', 'acne', 'pores'],
-    targetHairTypes: [],
-    targetGoals: ['clearskin', 'natural'],
-    avoidFor: [],
-    harshIngredients: [],
-    price: '€32.00',
-    description: 'chamomileSerumDesc',
-  },
-  {
-    id: 5,
-    name: 'Coconut Scalp Treatment',
-    brand: 'Rahua',
-    image: '🥥',
-    category: 'hair',
-    tags: ['organic', 'vegan', 'natural'],
-    targetConcerns: [],
-    targetHairTypes: ['straight', 'wavy', 'curly', 'coily'],
-    targetGoals: ['healthyhair', 'natural'],
-    avoidFor: [],
-    harshIngredients: [],
-    price: '€28.00',
-    description: 'coconutScalpDesc',
-  },
-  {
-    id: 6,
-    name: 'Hyaluronic Acid Serum',
-    brand: 'Typology',
-    image: '💧',
-    category: 'skin',
-    tags: ['vegan', 'natural', 'cruelty-free'],
-    targetConcerns: ['dryness', 'aging', 'dullness'],
-    targetHairTypes: [],
-    targetGoals: ['clearskin', 'natural'],
-    avoidFor: [],
-    harshIngredients: [],
-    price: '€19.90',
-    description: 'hyaluronicSerumDesc',
+    price: '€12.90',
+    affiliateUrl: 'https://www.klorane.com',
+    description: 'kloraneHairMaskDesc',
   },
   {
     id: 7,
-    name: 'Moringa Hair Oil',
-    brand: 'Klorane',
-    image: '🌱',
-    category: 'hair',
-    tags: ['bio', 'natural', 'vegan'],
-    targetConcerns: [],
-    targetHairTypes: ['curly', 'coily'],
-    targetGoals: ['healthyhair', 'natural'],
+    name: 'Huile Prodigieuse',
+    brand: 'NUXE',
+    image: nuxeOil,
+    category: 'both',
+    tags: ['natural'],
+    targetConcerns: ['dryness', 'dullness'],
+    targetHairTypes: ['straight', 'wavy', 'curly', 'coily'],
+    targetGoals: ['clearskin', 'healthyhair', 'natural'],
     avoidFor: [],
     harshIngredients: [],
-    price: '€15.90',
-    description: 'moringaOilDesc',
+    price: '€29.90',
+    affiliateUrl: 'https://www.nuxe.com',
+    description: 'nuxeOilDesc',
   },
   {
     id: 8,
-    name: 'Clay Purifying Mask',
-    brand: 'Cattier',
-    image: '🏺',
+    name: 'Ready Steady Glow Tonic',
+    brand: 'REN Clean Skincare',
+    image: renSerum,
     category: 'skin',
-    tags: ['bio', 'organic', 'natural'],
-    targetConcerns: ['oiliness', 'acne', 'pores'],
+    tags: ['natural', 'vegan', 'cruelty-free'],
+    targetConcerns: ['dullness', 'pores', 'hyperpigmentation'],
     targetHairTypes: [],
     targetGoals: ['clearskin', 'natural'],
-    avoidFor: ['dryness', 'sensitivity'],
+    avoidFor: ['sensitivity'],
     harshIngredients: [],
-    price: '€9.90',
-    description: 'clayMaskDesc',
+    price: '€32.00',
+    affiliateUrl: 'https://www.renskincare.com',
+    description: 'renTonicDesc',
   },
   {
     id: 9,
-    name: 'Quinoa Repair Shampoo',
-    brand: 'Kérastase Aura Botanica',
-    image: '🌾',
+    name: 'Treatment Original',
+    brand: 'Moroccanoil',
+    image: moroccanoilTreatment,
     category: 'hair',
-    tags: ['natural', 'vegan'],
+    tags: ['natural', 'cruelty-free'],
     targetConcerns: [],
-    targetHairTypes: ['straight', 'wavy'],
-    targetGoals: ['healthyhair', 'routine'],
+    targetHairTypes: ['straight', 'wavy', 'curly', 'coily'],
+    targetGoals: ['healthyhair'],
     avoidFor: [],
     harshIngredients: [],
-    price: '€26.00',
-    description: 'quinoaShampooDesc',
-  },
-  {
-    id: 10,
-    name: 'Calendula Repair Balm',
-    brand: 'Weleda',
-    image: '🧡',
-    category: 'both',
-    tags: ['bio', 'natural', 'organic'],
-    targetConcerns: ['dryness', 'sensitivity'],
-    targetHairTypes: ['curly', 'coily'],
-    targetGoals: ['natural', 'clearskin', 'healthyhair'],
-    avoidFor: [],
-    harshIngredients: [],
-    price: '€11.50',
-    description: 'calendulaBalm',
+    price: '€34.85',
+    affiliateUrl: 'https://www.moroccanoil.com',
+    description: 'moroccanoilDesc',
   },
 ];
 
@@ -211,10 +216,10 @@ const getMatchReasons = (product: Product, user: UserProfile): TranslationKey[] 
   }
 
   // Check hair concerns
-  const matchingHairConcerns = product.category !== 'skin' && user.hairConcerns.some(c => 
+  const hasHairConcerns = user.hairConcerns.some(c => 
     ['dryness', 'frizz', 'hairfall'].includes(c)
   );
-  if (matchingHairConcerns && product.category === 'hair') {
+  if (hasHairConcerns && (product.category === 'hair' || product.category === 'both')) {
     reasons.push('reasonNourishesHair');
   }
 
@@ -232,14 +237,13 @@ const getMatchReasons = (product: Product, user: UserProfile): TranslationKey[] 
     }
   }
 
-  return reasons.slice(0, 3); // Max 3 reasons
+  return reasons.slice(0, 3);
 };
 
 // Calculate match score (0-100)
 const calculateMatchScore = (product: Product, user: UserProfile): number => {
-  // If user has no profile data, show products with decent base score
   const hasProfile = user.skinConcerns.length > 0 || user.hairType || user.goals.length > 0;
-  let score = hasProfile ? 50 : 70; // Higher base for users without profile
+  let score = hasProfile ? 50 : 70;
 
   // Skin concerns match (+15 per match, max +30)
   const skinMatches = product.targetConcerns.filter(c => user.skinConcerns.includes(c)).length;
@@ -288,7 +292,7 @@ export const getRecommendations = (user: UserProfile, limit: number = 6): Recomm
       matchScore: calculateMatchScore(product, user),
       matchReasons: getMatchReasons(product, user),
     }))
-    .filter(p => p.matchScore >= 50) // Only show products with 50%+ match
+    .filter(p => p.matchScore >= 50)
     .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, limit);
 

@@ -264,17 +264,17 @@ export const translations = {
     reasonAllNatural: 'All-natural ingredients',
     reasonGentleFormula: 'Gentle, clean formula',
     
-    // Product descriptions
-    aloeCleanserDesc: 'A gentle, hydrating cleanser with pure aloe vera that soothes and refreshes sensitive skin.',
-    rosehipOilDesc: 'Cold-pressed organic rosehip oil rich in vitamins A and C to reduce fine lines and even skin tone.',
-    arganMaskDesc: 'Deep conditioning hair mask with pure argan oil to restore moisture and shine to dry, damaged hair.',
-    chamomileSerumDesc: 'Calming serum with chamomile extract that reduces redness and soothes irritated skin.',
-    coconutScalpDesc: 'Nourishing scalp treatment with organic coconut oil to promote healthy hair growth.',
-    hyaluronicSerumDesc: 'Lightweight hyaluronic acid serum that provides intense hydration for plump, dewy skin.',
-    moringaOilDesc: 'Lightweight moringa oil that deeply nourishes curly and coily hair without weighing it down.',
-    clayMaskDesc: 'Purifying clay mask that draws out impurities and minimizes pores for clearer skin.',
-    quinoaShampooDesc: 'Gentle shampoo with quinoa protein that strengthens and repairs damaged hair.',
-    calendulaBalm: 'Multi-purpose healing balm with calendula for dry skin and hair ends.',
+    // Product descriptions - Real products
+    weledaSkinFoodDesc: 'Iconic intensive moisturizer with plant extracts and essential oils. Nourishes and protects very dry, rough skin.',
+    paiRosehipDesc: 'Award-winning organic rosehip oil with CO2 extraction. Reduces scars, fine lines, and evens skin tone naturally.',
+    ordinaryNiacinamideDesc: 'High-strength vitamin and mineral formula to reduce the appearance of blemishes and balance oil production.',
+    olaplexOilDesc: 'Weightless, reparative styling oil that dramatically increases shine, softness, and color vibrancy.',
+    ceraveCleanserDesc: 'Dermatologist-developed gentle cleanser with ceramides and hyaluronic acid. Non-foaming formula for dry to normal skin.',
+    kloraneHairMaskDesc: 'Intense nourishing mask with mango butter for dry hair. Repairs and softens without weighing hair down.',
+    nuxeOilDesc: 'Cult-favorite dry oil for face, body, and hair. Made with 98.1% natural ingredients including precious botanical oils.',
+    renTonicDesc: 'Daily AHA tonic with lactic acid and willow bark. Gently exfoliates for brighter, more radiant skin.',
+    moroccanoilDesc: 'The original argan oil-infused hair treatment. Conditions, detangles, and speeds up drying time.',
+    realProductNote: 'This is a real product available on the market.',
   },
   es: {
     // Brand
@@ -533,17 +533,17 @@ export const translations = {
     reasonAllNatural: 'Ingredientes 100% naturales',
     reasonGentleFormula: 'Fórmula suave y limpia',
     
-    // Product descriptions
-    aloeCleanserDesc: 'Un limpiador suave e hidratante con aloe vera puro que calma y refresca la piel sensible.',
-    rosehipOilDesc: 'Aceite de rosa mosqueta orgánico prensado en frío, rico en vitaminas A y C para reducir líneas finas.',
-    arganMaskDesc: 'Mascarilla capilar nutritiva con aceite de argán puro para restaurar la humedad del cabello seco.',
-    chamomileSerumDesc: 'Sérum calmante con extracto de manzanilla que reduce el enrojecimiento y calma la piel irritada.',
-    coconutScalpDesc: 'Tratamiento nutritivo del cuero cabelludo con aceite de coco orgánico para un cabello sano.',
-    hyaluronicSerumDesc: 'Sérum ligero de ácido hialurónico que proporciona hidratación intensa para una piel luminosa.',
-    moringaOilDesc: 'Aceite de moringa ligero que nutre profundamente el cabello rizado sin apelmazarlo.',
-    clayMaskDesc: 'Mascarilla purificante de arcilla que elimina impurezas y minimiza los poros.',
-    quinoaShampooDesc: 'Champú suave con proteína de quinoa que fortalece y repara el cabello dañado.',
-    calendulaBalm: 'Bálsamo reparador multiusos con caléndula para piel seca y puntas del cabello.',
+    // Product descriptions - Real products
+    weledaSkinFoodDesc: 'Hidratante intensivo icónico con extractos vegetales y aceites esenciales. Nutre y protege la piel muy seca.',
+    paiRosehipDesc: 'Aceite de rosa mosqueta orgánico premiado con extracción CO2. Reduce cicatrices, líneas finas y unifica el tono.',
+    ordinaryNiacinamideDesc: 'Fórmula de vitaminas y minerales de alta concentración para reducir imperfecciones y equilibrar la producción de grasa.',
+    olaplexOilDesc: 'Aceite reparador ultraligero que aumenta drásticamente el brillo, la suavidad y la vitalidad del color.',
+    ceraveCleanserDesc: 'Limpiador suave desarrollado por dermatólogos con ceramidas y ácido hialurónico. Fórmula sin espuma para piel seca.',
+    kloraneHairMaskDesc: 'Mascarilla nutritiva intensa con manteca de mango para cabello seco. Repara y suaviza sin apelmazar.',
+    nuxeOilDesc: 'Aceite seco de culto para rostro, cuerpo y cabello. Elaborado con 98,1% de ingredientes naturales y aceites botánicos preciosos.',
+    renTonicDesc: 'Tónico AHA diario con ácido láctico y corteza de sauce. Exfolia suavemente para una piel más luminosa.',
+    moroccanoilDesc: 'El tratamiento capilar original con aceite de argán. Acondiciona, desenreda y acelera el secado.',
+    realProductNote: 'Este es un producto real disponible en el mercado.',
   },
   fr: {
     // Brand
@@ -802,17 +802,17 @@ export const translations = {
     reasonAllNatural: 'Ingrédients 100% naturels',
     reasonGentleFormula: 'Formule douce et clean',
     
-    // Product descriptions
-    aloeCleanserDesc: 'Un nettoyant doux et hydratant à l\'aloe vera pur qui apaise et rafraîchit les peaux sensibles.',
-    rosehipOilDesc: 'Huile de rose musquée bio pressée à froid, riche en vitamines A et C pour réduire les ridules.',
-    arganMaskDesc: 'Masque capillaire nourrissant à l\'huile d\'argan pure pour restaurer l\'hydratation des cheveux secs.',
-    chamomileSerumDesc: 'Sérum apaisant à l\'extrait de camomille qui réduit les rougeurs et calme les peaux irritées.',
-    coconutScalpDesc: 'Soin nourrissant du cuir chevelu à l\'huile de coco bio pour des cheveux en bonne santé.',
-    hyaluronicSerumDesc: 'Sérum léger à l\'acide hyaluronique pour une hydratation intense et une peau repulpée.',
-    moringaOilDesc: 'Huile de moringa légère qui nourrit les cheveux bouclés et crépus sans les alourdir.',
-    clayMaskDesc: 'Masque purifiant à l\'argile qui élimine les impuretés et resserre les pores.',
-    quinoaShampooDesc: 'Shampooing doux à la protéine de quinoa qui fortifie et répare les cheveux abîmés.',
-    calendulaBalm: 'Baume réparateur multi-usage au calendula pour les peaux sèches et les pointes.',
+    // Product descriptions - Real products
+    weledaSkinFoodDesc: 'Hydratant intensif emblématique aux extraits de plantes et huiles essentielles. Nourrit et protège les peaux très sèches.',
+    paiRosehipDesc: 'Huile de rose musquée bio primée avec extraction CO2. Réduit les cicatrices, ridules et unifie le teint.',
+    ordinaryNiacinamideDesc: 'Formule haute concentration de vitamines et minéraux pour réduire les imperfections et équilibrer le sébum.',
+    olaplexOilDesc: 'Huile coiffante réparatrice ultra-légère qui augmente brillance, douceur et éclat de la couleur.',
+    ceraveCleanserDesc: 'Nettoyant doux développé par des dermatologues avec céramides et acide hyaluronique. Sans mousse pour peaux sèches.',
+    kloraneHairMaskDesc: 'Masque nourrissant intense au beurre de mangue pour cheveux secs. Répare et adoucit sans alourdir.',
+    nuxeOilDesc: 'Huile sèche culte pour visage, corps et cheveux. 98,1% d\'ingrédients naturels dont des huiles botaniques précieuses.',
+    renTonicDesc: 'Tonique AHA quotidien à l\'acide lactique et écorce de saule. Exfolie en douceur pour une peau plus lumineuse.',
+    moroccanoilDesc: 'Le soin capillaire original à l\'huile d\'argan. Conditionne, démêle et accélère le séchage.',
+    realProductNote: 'Ceci est un produit réel disponible sur le marché.',
   },
 };
 

@@ -6,57 +6,53 @@ import { cn } from '@/lib/utils';
 import { useUser } from '@/contexts/UserContext';
 import { getProductWithMatch, tagTranslations } from '@/lib/recommendations';
 
-// Static ingredient data for products
+// Real ingredient data for products
 const productIngredients: Record<number, { name: string; safe: boolean; note: string }[]> = {
   1: [
-    { name: 'Aloe Vera', safe: true, note: 'Soothes & hydrates' },
-    { name: 'Glycerin', safe: true, note: 'Moisture retention' },
-    { name: 'Vitamin E', safe: true, note: 'Antioxidant protection' },
+    { name: 'Sunflower Seed Oil', safe: true, note: 'Deep nourishment' },
+    { name: 'Lanolin', safe: true, note: 'Protective barrier' },
+    { name: 'Chamomile Extract', safe: true, note: 'Soothes irritation' },
   ],
   2: [
     { name: 'Rosehip Seed Oil', safe: true, note: 'Rich in Vitamin A & C' },
-    { name: 'Essential Fatty Acids', safe: true, note: 'Skin regeneration' },
-    { name: 'Beta-Carotene', safe: true, note: 'Natural antioxidant' },
+    { name: 'Vitamin E', safe: true, note: 'Antioxidant protection' },
+    { name: 'Omega Fatty Acids', safe: true, note: 'Skin regeneration' },
   ],
   3: [
-    { name: 'Argan Oil', safe: true, note: 'Deep nourishment' },
-    { name: 'Keratin', safe: true, note: 'Hair repair' },
-    { name: 'Shea Butter', safe: true, note: 'Intense moisture' },
+    { name: 'Niacinamide 10%', safe: true, note: 'Reduces blemishes' },
+    { name: 'Zinc PCA 1%', safe: true, note: 'Oil control' },
+    { name: 'Tasmanian Pepperberry', safe: true, note: 'Reduces irritation' },
   ],
   4: [
-    { name: 'Chamomile Extract', safe: true, note: 'Calming & anti-inflammatory' },
-    { name: 'Bisabolol', safe: true, note: 'Reduces redness' },
-    { name: 'Allantoin', safe: true, note: 'Skin healing' },
+    { name: 'Bis-Aminopropyl Diglycol Dimaleate', safe: true, note: 'Bond repair' },
+    { name: 'Moringa Oil', safe: true, note: 'Shine enhancement' },
+    { name: 'Fermented Green Tea', safe: true, note: 'Antioxidant' },
   ],
   5: [
-    { name: 'Coconut Oil', safe: true, note: 'Deep conditioning' },
-    { name: 'Vitamin E', safe: true, note: 'Scalp health' },
-    { name: 'Lauric Acid', safe: true, note: 'Antimicrobial' },
+    { name: 'Ceramides 1, 3, 6-II', safe: true, note: 'Restores skin barrier' },
+    { name: 'Hyaluronic Acid', safe: true, note: 'Hydration' },
+    { name: 'Glycerin', safe: true, note: 'Moisture retention' },
   ],
   6: [
-    { name: 'Hyaluronic Acid', safe: true, note: 'Intense hydration' },
-    { name: 'Sodium Hyaluronate', safe: true, note: 'Deep penetration' },
-    { name: 'Panthenol', safe: true, note: 'Skin barrier support' },
+    { name: 'Mango Butter', safe: true, note: 'Intense nourishment' },
+    { name: 'Apricot Kernel Oil', safe: true, note: 'Softening' },
+    { name: 'Vitamin E', safe: true, note: 'Hair protection' },
   ],
   7: [
-    { name: 'Moringa Oil', safe: true, note: 'Lightweight moisture' },
-    { name: 'Oleic Acid', safe: true, note: 'Hair flexibility' },
-    { name: 'Vitamin C', safe: true, note: 'Hair strength' },
+    { name: 'Tsubaki Oil', safe: true, note: 'Shine & softness' },
+    { name: 'Argan Oil', safe: true, note: 'Nourishment' },
+    { name: 'Sweet Almond Oil', safe: true, note: 'Conditioning' },
+    { name: 'Hazelnut Oil', safe: true, note: 'Lightweight moisture' },
   ],
   8: [
-    { name: 'Kaolin Clay', safe: true, note: 'Draws out impurities' },
-    { name: 'Bentonite Clay', safe: true, note: 'Minimizes pores' },
-    { name: 'Zinc Oxide', safe: true, note: 'Oil control' },
+    { name: 'Lactic Acid', safe: true, note: 'Gentle exfoliation' },
+    { name: 'Willow Bark Extract', safe: true, note: 'Pore refinement' },
+    { name: 'Succinic Acid', safe: true, note: 'Brightening' },
   ],
   9: [
-    { name: 'Quinoa Protein', safe: true, note: 'Hair strengthening' },
-    { name: 'Panthenol', safe: true, note: 'Moisture retention' },
-    { name: 'Biotin', safe: true, note: 'Hair growth support' },
-  ],
-  10: [
-    { name: 'Calendula Extract', safe: true, note: 'Healing & soothing' },
-    { name: 'Beeswax', safe: true, note: 'Protective barrier' },
-    { name: 'Vitamin E', safe: true, note: 'Skin repair' },
+    { name: 'Argan Oil', safe: true, note: 'Deep conditioning' },
+    { name: 'Linseed Extract', safe: true, note: 'Strengthening' },
+    { name: 'Vitamin E & F', safe: true, note: 'Shine & protection' },
   ],
 };
 
@@ -125,29 +121,47 @@ const ProductDetailPage = () => {
 
       <div className="px-4 py-6 space-y-6 animate-fade-in pb-28">
         {/* Product Hero */}
-        <div className="bg-card rounded-3xl p-8 shadow-warm flex flex-col items-center">
-          <span className="text-7xl mb-4">{product.image}</span>
-          <p className="text-sm text-muted-foreground">{product.brand}</p>
-          <h1 className="font-display text-xl font-semibold text-center">{product.name}</h1>
-          <div className="mt-3 flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground text-sm font-medium px-3 py-1 rounded-full">
-              {product.matchScore}% {t('match')}
-            </span>
-            <span className="text-lg font-semibold text-primary">{product.price}</span>
+        <div className="bg-card rounded-3xl shadow-warm flex flex-col items-center overflow-hidden">
+          {/* Product Image */}
+          <div className="w-full aspect-square bg-white">
+            <img 
+              src={product.image} 
+              alt={product.name}
+              className="w-full h-full object-cover"
+            />
           </div>
           
-          {/* Product Tags */}
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {product.tags.map(tag => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 text-xs px-3 py-1 bg-maseya-sage/20 text-foreground rounded-full"
-              >
-                <Leaf className="w-3 h-3" />
-                {getTagLabel(tag)}
+          <div className="p-6 text-center">
+            <p className="text-sm text-muted-foreground">{product.brand}</p>
+            <h1 className="font-display text-xl font-semibold">{product.name}</h1>
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <span className="bg-primary text-primary-foreground text-sm font-medium px-3 py-1 rounded-full">
+                {product.matchScore}% {t('match')}
               </span>
-            ))}
+              <span className="text-lg font-semibold text-primary">{product.price}</span>
+            </div>
+            
+            {/* Product Tags */}
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              {product.tags.map(tag => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 text-xs px-3 py-1 bg-maseya-sage/20 text-foreground rounded-full"
+                >
+                  <Leaf className="w-3 h-3" />
+                  {getTagLabel(tag)}
+                </span>
+              ))}
+            </div>
           </div>
+        </div>
+
+        {/* Real Product Note */}
+        <div className="bg-maseya-cream/50 border border-maseya-sage/30 rounded-xl p-3 flex items-center gap-2">
+          <Check className="w-4 h-4 text-primary flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            {t('realProductNote')}
+          </p>
         </div>
 
         {/* Description */}

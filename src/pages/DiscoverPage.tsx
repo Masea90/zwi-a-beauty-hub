@@ -152,9 +152,13 @@ const ProductCard = ({ product, isFavorite, onToggleFavorite, t, getTagLabel }: 
         />
       </button>
 
-      {/* Image */}
-      <div className="w-full aspect-square bg-secondary rounded-xl flex items-center justify-center text-4xl mb-3">
-        {product.image}
+      {/* Product Image */}
+      <div className="w-full aspect-square bg-white rounded-xl flex items-center justify-center overflow-hidden mb-3">
+        <img 
+          src={product.image} 
+          alt={product.name}
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Info */}

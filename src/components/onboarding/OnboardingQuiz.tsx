@@ -3,75 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/contexts/UserContext';
-import { Check, ChevronLeft, ChevronRight, Crown } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const steps = [
-  {
-    id: 'skin',
-    title: 'What are your skin concerns?',
-    subtitle: 'Select all that apply',
-    options: [
-      { id: 'dryness', label: 'Dryness', emoji: '💧' },
-      { id: 'acne', label: 'Acne & Breakouts', emoji: '🔴' },
-      { id: 'aging', label: 'Fine Lines & Aging', emoji: '✨' },
-      { id: 'sensitivity', label: 'Sensitivity', emoji: '🌸' },
-      { id: 'oiliness', label: 'Oily Skin', emoji: '💦' },
-      { id: 'hyperpigmentation', label: 'Dark Spots', emoji: '🎯' },
-      { id: 'dullness', label: 'Dull Skin', emoji: '😴' },
-      { id: 'pores', label: 'Large Pores', emoji: '🔎' },
-    ],
-    multi: true,
-    field: 'skinConcerns',
-  },
-  {
-    id: 'hair',
-    title: "What's your hair type?",
-    subtitle: 'Select one',
-    options: [
-      { id: 'straight', label: 'Straight', emoji: '📏' },
-      { id: 'wavy', label: 'Wavy', emoji: '🌊' },
-      { id: 'curly', label: 'Curly', emoji: '🌀' },
-      { id: 'coily', label: 'Coily', emoji: '⭕' },
-    ],
-    multi: false,
-    field: 'hairType',
-  },
-  {
-    id: 'hairConcerns',
-    title: 'Any hair concerns?',
-    subtitle: 'Select all that apply',
-    options: [
-      { id: 'dryness', label: 'Dry & Brittle', emoji: '🏜️' },
-      { id: 'frizz', label: 'Frizz', emoji: '⚡' },
-      { id: 'hairfall', label: 'Hair Fall', emoji: '😰' },
-      { id: 'dandruff', label: 'Dandruff', emoji: '❄️' },
-      { id: 'oily', label: 'Oily Scalp', emoji: '💧' },
-      { id: 'thinning', label: 'Thinning', emoji: '🪶' },
-    ],
-    multi: true,
-    field: 'hairConcerns',
-  },
-  {
-    id: 'goals',
-    title: 'What matters most to you?',
-    subtitle: 'Select your top priorities',
-    options: [
-      { id: 'clearskin', label: 'Clear, Glowing Skin', emoji: '✨' },
-      { id: 'healthyhair', label: 'Healthy, Strong Hair', emoji: '💪' },
-      { id: 'natural', label: 'All-Natural Products', emoji: '🌿' },
-      { id: 'nutrition', label: 'Better Nutrition', emoji: '🥗' },
-      { id: 'routine', label: 'Simple Routines', emoji: '📋' },
-      { id: 'community', label: 'Community Support', emoji: '💕' },
-    ],
-    multi: true,
-    field: 'goals',
-  },
-];
 
 export const OnboardingQuiz = () => {
   const navigate = useNavigate();
-  const { updateUser, completeOnboarding } = useUser();
+  const { updateUser, t } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({
     skinConcerns: [],
@@ -79,6 +16,69 @@ export const OnboardingQuiz = () => {
     hairConcerns: [],
     goals: [],
   });
+
+  const steps = [
+    {
+      id: 'skin',
+      title: t('skinConcernsTitle'),
+      subtitle: t('skinConcernsSubtitle'),
+      options: [
+        { id: 'dryness', label: t('dryness'), emoji: '💧' },
+        { id: 'acne', label: t('acne'), emoji: '🔴' },
+        { id: 'aging', label: t('aging'), emoji: '✨' },
+        { id: 'sensitivity', label: t('sensitivity'), emoji: '🌸' },
+        { id: 'oiliness', label: t('oiliness'), emoji: '💦' },
+        { id: 'hyperpigmentation', label: t('hyperpigmentation'), emoji: '🎯' },
+        { id: 'dullness', label: t('dullness'), emoji: '😴' },
+        { id: 'pores', label: t('pores'), emoji: '🔎' },
+      ],
+      multi: true,
+      field: 'skinConcerns',
+    },
+    {
+      id: 'hair',
+      title: t('hairTypeTitle'),
+      subtitle: t('hairTypeSubtitle'),
+      options: [
+        { id: 'straight', label: t('straight'), emoji: '📏' },
+        { id: 'wavy', label: t('wavy'), emoji: '🌊' },
+        { id: 'curly', label: t('curly'), emoji: '🌀' },
+        { id: 'coily', label: t('coily'), emoji: '⭕' },
+      ],
+      multi: false,
+      field: 'hairType',
+    },
+    {
+      id: 'hairConcerns',
+      title: t('hairConcernsTitle'),
+      subtitle: t('hairConcernsSubtitle'),
+      options: [
+        { id: 'dryness', label: t('dryBrittle'), emoji: '🏜️' },
+        { id: 'frizz', label: t('frizz'), emoji: '⚡' },
+        { id: 'hairfall', label: t('hairfall'), emoji: '😰' },
+        { id: 'dandruff', label: t('dandruff'), emoji: '❄️' },
+        { id: 'oily', label: t('oilyScalp'), emoji: '💧' },
+        { id: 'thinning', label: t('thinning'), emoji: '🪶' },
+      ],
+      multi: true,
+      field: 'hairConcerns',
+    },
+    {
+      id: 'goals',
+      title: t('goalsTitle'),
+      subtitle: t('goalsSubtitle'),
+      options: [
+        { id: 'clearskin', label: t('clearSkin'), emoji: '✨' },
+        { id: 'healthyhair', label: t('healthyHair'), emoji: '💪' },
+        { id: 'natural', label: t('natural'), emoji: '🌿' },
+        { id: 'nutrition', label: t('nutrition'), emoji: '🥗' },
+        { id: 'routine', label: t('routine'), emoji: '📋' },
+        { id: 'community', label: t('community'), emoji: '💕' },
+      ],
+      multi: true,
+      field: 'goals',
+    },
+  ];
 
   const step = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
@@ -128,7 +128,7 @@ export const OnboardingQuiz = () => {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     } else {
-      navigate('/');
+      navigate('/onboarding/language');
     }
   };
 
@@ -144,13 +144,13 @@ export const OnboardingQuiz = () => {
             <ChevronLeft className="w-6 h-6 text-muted-foreground" />
           </button>
           <span className="text-sm text-muted-foreground">
-            {currentStep + 1} of {steps.length}
+            {currentStep + 1} {t('of')} {steps.length}
           </span>
           <button
             onClick={() => navigate('/onboarding/premium')}
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            Skip
+            {t('skip')}
           </button>
         </div>
         <Progress value={progress} className="h-2 bg-secondary" />
@@ -200,11 +200,11 @@ export const OnboardingQuiz = () => {
         >
           {currentStep < steps.length - 1 ? (
             <>
-              Continue
+              {t('continue')}
               <ChevronRight className="w-5 h-5 ml-1" />
             </>
           ) : (
-            'Complete'
+            t('complete')
           )}
         </Button>
       </div>

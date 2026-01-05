@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { Language, getTranslation, TranslationKey } from '@/lib/i18n';
 
 export interface UserProfile {
   name: string;
@@ -15,16 +16,19 @@ export interface UserProfile {
     nutrition: number;
   };
   onboardingComplete: boolean;
+  language: Language;
 }
 
 interface UserContextType {
   user: UserProfile;
   updateUser: (updates: Partial<UserProfile>) => void;
   completeOnboarding: () => void;
+  t: (key: TranslationKey) => string;
+  setLanguage: (lang: Language) => void;
 }
 
 const defaultUser: UserProfile = {
-  name: 'Sarah',
+  name: 'Asmae',
   skinConcerns: [],
   hairType: '',
   hairConcerns: [],
@@ -38,6 +42,7 @@ const defaultUser: UserProfile = {
     nutrition: 62,
   },
   onboardingComplete: false,
+  language: 'en',
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -53,8 +58,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setUser(prev => ({ ...prev, onboardingComplete: true }));
   };
 
+  const t = (key: TranslationKey): string => {
+    return getTranslation(user.language, key);
+  };
+
+  const setLanguage = (lang: Language) => {
+    setUser(prev => ({ ...prev, language: lang }));
+  };
+
   return (
-    <UserContext.Provider value={{ user, updateUser, completeOnboarding }}>
+    <UserContext.Provider value={{ user, updateUser, completeOnboarding, t, setLanguage }}>
       {children}
     </UserContext.Provider>
   );

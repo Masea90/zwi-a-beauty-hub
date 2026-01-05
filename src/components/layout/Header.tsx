@@ -33,7 +33,7 @@ export const Header = ({
             <Link to="/home" className="flex items-center gap-2">
               <span className="text-2xl">🌿</span>
               <span className="font-display text-xl font-semibold text-primary">
-                ZWINA
+                MASEYA
               </span>
             </Link>
           ) : (
@@ -53,7 +53,7 @@ export const Header = ({
           {showNotifications && (
             <button className="p-2 rounded-full hover:bg-secondary transition-colors relative">
               <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-zwina-terracotta rounded-full" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-maseya-terracotta rounded-full" />
             </button>
           )}
           {showSettings && (

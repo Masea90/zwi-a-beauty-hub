@@ -61,16 +61,16 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        zwina: {
-          olive: "hsl(var(--zwina-olive))",
-          "olive-light": "hsl(var(--zwina-olive-light))",
-          beige: "hsl(var(--zwina-beige))",
-          cream: "hsl(var(--zwina-cream))",
-          nude: "hsl(var(--zwina-nude))",
-          terracotta: "hsl(var(--zwina-terracotta))",
-          rose: "hsl(var(--zwina-rose))",
-          gold: "hsl(var(--zwina-gold))",
-          sage: "hsl(var(--zwina-sage))",
+        maseya: {
+          olive: "hsl(var(--maseya-olive))",
+          "olive-light": "hsl(var(--maseya-olive-light))",
+          beige: "hsl(var(--maseya-beige))",
+          cream: "hsl(var(--maseya-cream))",
+          nude: "hsl(var(--maseya-nude))",
+          terracotta: "hsl(var(--maseya-terracotta))",
+          rose: "hsl(var(--maseya-rose))",
+          gold: "hsl(var(--maseya-gold))",
+          sage: "hsl(var(--maseya-sage))",
         },
         glow: {
           skin: "hsl(var(--glow-skin))",
@@ -112,8 +112,8 @@ export default {
           "50%": { opacity: "0.7" },
         },
         "glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--zwina-gold) / 0.3)" },
-          "50%": { boxShadow: "0 0 30px hsl(var(--zwina-gold) / 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--maseya-gold) / 0.3)" },
+          "50%": { boxShadow: "0 0 30px hsl(var(--maseya-gold) / 0.5)" },
         },
       },
       animation: {

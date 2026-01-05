@@ -10,27 +10,25 @@ interface Message {
   time: string;
 }
 
-const initialMessages: Message[] = [
-  {
-    id: 1,
-    type: 'bot',
-    content: "Hi there! 👋 I'm Zara, your personal beauty assistant. How can I help you today?",
-    time: 'Just now',
-  },
-];
-
-const quickReplies = [
-  'Best products for dry skin',
-  'How to reduce acne?',
-  'Hair growth tips',
-  'What users like me use?',
-];
-
 export const Chatbot = () => {
-  const { user } = useUser();
+  const { user, t } = useUser();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 1,
+      type: 'bot',
+      content: t('chatbotGreeting'),
+      time: 'Just now',
+    },
+  ]);
   const [input, setInput] = useState('');
+
+  const quickReplies = [
+    t('bestForDrySkin'),
+    t('howToReduceAcne'),
+    t('hairGrowthTips'),
+    t('whatUsersLikeMeUse'),
+  ];
 
   const handleSend = (text?: string) => {
     const messageText = text || input;
@@ -50,13 +48,13 @@ export const Chatbot = () => {
     setTimeout(() => {
       let botResponse = '';
       
-      if (messageText.toLowerCase().includes('dry skin')) {
+      if (messageText.toLowerCase().includes('dry') || messageText.toLowerCase().includes('sec')) {
         botResponse = `Based on your profile, I'd recommend hyaluronic acid serums and ceramide-rich moisturizers. Users like you love CeraVe's Hydrating Cleanser - it's a 94% match for your skin type! 💧`;
-      } else if (messageText.toLowerCase().includes('acne')) {
+      } else if (messageText.toLowerCase().includes('acne') || messageText.toLowerCase().includes('acné')) {
         botResponse = `For acne concerns, look for products with salicylic acid or niacinamide. Since you have sensitive skin, start with lower concentrations. The Inkey List Niacinamide is popular in our community! 🌿`;
-      } else if (messageText.toLowerCase().includes('hair')) {
+      } else if (messageText.toLowerCase().includes('hair') || messageText.toLowerCase().includes('cheveux') || messageText.toLowerCase().includes('cabello')) {
         botResponse = `For hair growth, rosemary oil is trending in our community! 847 users with similar hair types have seen great results. Try our Rosemary Hair Oil Treatment in the Remedies section. 💇‍♀️`;
-      } else if (messageText.toLowerCase().includes('users like me')) {
+      } else if (messageText.toLowerCase().includes('users like me') || messageText.toLowerCase().includes('usuarias') || messageText.toLowerCase().includes('utilisatrices')) {
         botResponse = `Users with your profile are currently loving: 1) Rice water rinses 2) Vitamin C serums 3) Gentle cleansers without fragrance. Want me to show you specific products?`;
       } else {
         botResponse = `That's a great question! Based on your ${user.skinConcerns.length > 0 ? 'skin concerns' : 'profile'}, I can help you find the perfect products. Would you like personalized recommendations? 🌸`;
@@ -93,8 +91,8 @@ export const Chatbot = () => {
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-semibold">Zara</h3>
-            <p className="text-xs opacity-80">Your beauty assistant</p>
+            <h3 className="font-semibold">{t('chatbotName')}</h3>
+            <p className="text-xs opacity-80">{t('chatbotSubtitle')}</p>
           </div>
         </div>
         <button
@@ -164,7 +162,7 @@ export const Chatbot = () => {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSend()}
-            placeholder="Ask me anything..."
+            placeholder={t('askAnything')}
             className="flex-1 h-10 px-4 rounded-full bg-background border border-border focus:border-primary focus:outline-none text-sm"
           />
           <button

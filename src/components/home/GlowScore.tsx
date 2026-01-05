@@ -1,3 +1,5 @@
+import { useUser } from '@/contexts/UserContext';
+
 interface GlowScoreProps {
   skin: number;
   hair: number;
@@ -5,13 +7,14 @@ interface GlowScoreProps {
 }
 
 export const GlowScore = ({ skin, hair, nutrition }: GlowScoreProps) => {
+  const { t } = useUser();
   const overall = Math.round((skin + hair + nutrition) / 3);
   const circumference = 2 * Math.PI * 45;
   const offset = circumference - (overall / 100) * circumference;
 
   return (
     <div className="bg-card rounded-3xl p-6 shadow-warm">
-      <h2 className="font-display text-lg font-semibold mb-4">Your Glow Score</h2>
+      <h2 className="font-display text-lg font-semibold mb-4">{t('yourGlowScore')}</h2>
       
       <div className="flex items-center gap-6">
         {/* Circular Progress */}
@@ -48,7 +51,7 @@ export const GlowScore = ({ skin, hair, nutrition }: GlowScoreProps) => {
         <div className="flex-1 space-y-3">
           <div className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Skin</span>
+              <span className="text-muted-foreground">{t('skin')}</span>
               <span className="font-medium text-glow-skin">{skin}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -61,7 +64,7 @@ export const GlowScore = ({ skin, hair, nutrition }: GlowScoreProps) => {
 
           <div className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Hair</span>
+              <span className="text-muted-foreground">{t('hair')}</span>
               <span className="font-medium text-glow-hair">{hair}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -74,7 +77,7 @@ export const GlowScore = ({ skin, hair, nutrition }: GlowScoreProps) => {
 
           <div className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Nutrition</span>
+              <span className="text-muted-foreground">{t('routineNav')}</span>
               <span className="font-medium text-glow-nutrition">{nutrition}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -90,7 +93,7 @@ export const GlowScore = ({ skin, hair, nutrition }: GlowScoreProps) => {
       <div className="mt-4 pt-4 border-t border-border flex items-center gap-2">
         <span className="text-lg">📈</span>
         <span className="text-sm text-muted-foreground">
-          <span className="text-primary font-medium">+5%</span> improvement this week
+          <span className="text-primary font-medium">+5%</span> {t('improvement')}
         </span>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { Chatbot } from "@/components/chat/Chatbot";
 
 // Pages
 import { WelcomeScreen } from "@/components/onboarding/WelcomeScreen";
+import { LanguageSelect } from "@/components/onboarding/LanguageSelect";
 import { OnboardingQuiz } from "@/components/onboarding/OnboardingQuiz";
 import { PremiumScreen } from "@/components/onboarding/PremiumScreen";
 import HomePage from "@/pages/HomePage";
@@ -33,6 +34,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Onboarding */}
         <Route path="/" element={user.onboardingComplete ? <Navigate to="/home" /> : <WelcomeScreen />} />
+        <Route path="/onboarding/language" element={<LanguageSelect />} />
         <Route path="/onboarding/quiz" element={<OnboardingQuiz />} />
         <Route path="/onboarding/premium" element={<PremiumScreen />} />
         <Route path="/login" element={<LoginPage />} />

@@ -29,8 +29,22 @@ import NotFound from "@/pages/NotFound";
  * Must be rendered inside AuthProvider and UserProvider
  */
 export function AppRoutes() {
-  const { isAuthenticated } = useAuth();
-  const { user } = useUser();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isLoading: userLoading } = useUser();
+
+  // Show loading while auth is being determined
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto animate-pulse">
+            <span className="text-3xl">🌿</span>
+          </div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Not authenticated -> show login
   if (!isAuthenticated) {

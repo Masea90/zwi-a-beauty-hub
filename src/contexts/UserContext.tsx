@@ -1,37 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Language, getTranslation, TranslationKey } from '@/lib/i18n';
 import { useAuth } from './AuthContext';
-
-const getUserStorageKey = (userId: string) => `maseya-user-${userId}`;
-
-const getStoredLanguage = (userId: string | null): Language => {
-  if (!userId) return 'en';
-  try {
-    const stored = localStorage.getItem(getUserStorageKey(userId));
-    if (stored) {
-      const user = JSON.parse(stored);
-      if (user.language && ['en', 'es', 'fr'].includes(user.language)) {
-        return user.language;
-      }
-    }
-  } catch (e) {
-    console.warn('Failed to read language from localStorage');
-  }
-  return 'en';
-};
-
-const getStoredUser = (userId: string | null): Partial<UserProfile> => {
-  if (!userId) return {};
-  try {
-    const stored = localStorage.getItem(getUserStorageKey(userId));
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    console.warn('Failed to read user from localStorage');
-  }
-  return {};
-};
+import { supabase } from '@/integrations/supabase/client';
 
 export interface RoutineCompletion {
   morning: number[];
@@ -49,7 +19,6 @@ export interface UserProfile {
   isPremium: boolean;
   points: number;
   streak: number;
-  // Glow score is now computed dynamically
   onboardingComplete: boolean;
   guideCompleted: boolean;
   language: Language;
@@ -72,6 +41,7 @@ interface UserContextType {
   setLanguage: (lang: Language) => void;
   updateRoutineCompletion: (completion: RoutineCompletion) => void;
   glowScore: GlowScores;
+  isLoading: boolean;
 }
 
 const getTodayDateString = (): string => {
@@ -100,12 +70,10 @@ const createDefaultUser = (email?: string): UserProfile => ({
 
 // Calculate dynamic glow scores based on user actions
 const calculateGlowScores = (user: UserProfile): GlowScores => {
-  // Base scores
   let skinScore = 30;
   let hairScore = 30;
   let nutritionScore = 30;
 
-  // Profile completion bonuses (up to +20 each)
   if (user.skinConcerns.length > 0) skinScore += 10;
   if (user.skinConcerns.length >= 2) skinScore += 10;
   if (user.hairType) hairScore += 10;
@@ -113,29 +81,23 @@ const calculateGlowScores = (user: UserProfile): GlowScores => {
   if (user.goals.length > 0) nutritionScore += 10;
   if (user.goals.length >= 2) nutritionScore += 10;
 
-  // Routine completion bonuses (up to +40 each)
   const morningSteps = user.routineCompletion?.morning?.length || 0;
   const nightSteps = user.routineCompletion?.night?.length || 0;
   
-  // Skin benefits from cleansing & moisturizing (morning steps 1,2,3 and night steps 1,2,3,4)
   const skinRoutineSteps = Math.min(morningSteps, 3) + Math.min(nightSteps, 4);
   skinScore += Math.round((skinRoutineSteps / 7) * 40);
 
-  // Hair benefits from night routine (steps 3,4 are hair-related)
   const hairRoutineSteps = nightSteps >= 3 ? 1 : 0;
   hairScore += hairRoutineSteps * 20;
   
-  // Nutrition/wellness from consistency and completing full routines
-  const routineCompletionRate = (morningSteps + nightSteps) / 8; // 4 morning + 4 night max
+  const routineCompletionRate = (morningSteps + nightSteps) / 8;
   nutritionScore += Math.round(routineCompletionRate * 30);
 
-  // Streak bonus (up to +10 each)
   const streakBonus = Math.min(user.streak, 7) * 1.5;
   skinScore += Math.round(streakBonus);
   hairScore += Math.round(streakBonus);
   nutritionScore += Math.round(streakBonus);
 
-  // Cap at 100
   skinScore = Math.min(100, Math.max(0, skinScore));
   hairScore = Math.min(100, Math.max(0, hairScore));
   nutritionScore = Math.min(100, Math.max(0, nutritionScore));
@@ -148,64 +110,115 @@ const calculateGlowScores = (user: UserProfile): GlowScores => {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, isLoading: authLoading } = useAuth();
   const userId = currentUser?.id || null;
 
-  const [user, setUser] = useState<UserProfile>(() => {
-    const defaultUser = createDefaultUser(currentUser?.email);
-    const storedUser = getStoredUser(userId);
-    const mergedUser = { ...defaultUser, ...storedUser };
-    
-    // Reset routine completion if it's a new day
-    if (mergedUser.routineCompletion?.lastCompletedDate !== getTodayDateString()) {
-      mergedUser.routineCompletion = {
-        morning: [],
-        night: [],
-        lastCompletedDate: null,
-      };
-    }
-    
-    return mergedUser;
-  });
+  const [user, setUser] = useState<UserProfile>(() => createDefaultUser(currentUser?.email));
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Reload user data when auth user changes
+  // Load profile from database when user logs in
   useEffect(() => {
-    const defaultUser = createDefaultUser(currentUser?.email);
-    const storedUser = getStoredUser(userId);
-    const mergedUser = { ...defaultUser, ...storedUser };
-    
-    // Reset routine completion if it's a new day
-    if (mergedUser.routineCompletion?.lastCompletedDate !== getTodayDateString()) {
-      mergedUser.routineCompletion = {
-        morning: [],
-        night: [],
-        lastCompletedDate: null,
-      };
-    }
-    
-    setUser(mergedUser);
-  }, [userId, currentUser?.email]);
+    const loadProfile = async () => {
+      if (!userId) {
+        setUser(createDefaultUser());
+        setIsLoading(false);
+        return;
+      }
 
-  // Persist user data to localStorage (per user)
-  useEffect(() => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading profile:', error);
+          setUser(createDefaultUser(currentUser?.email));
+        } else if (data) {
+          // Map database fields to UserProfile
+          const profile: UserProfile = {
+            name: currentUser?.email?.split('@')[0] || 'Guest',
+            nickname: data.nickname || '',
+            skinConcerns: data.skin_concerns || [],
+            hairType: data.hair_type || '',
+            hairConcerns: data.hair_concerns || [],
+            goals: data.goals || [],
+            isPremium: data.is_premium || false,
+            points: data.points || 0,
+            streak: data.streak || 0,
+            onboardingComplete: data.onboarding_complete || false,
+            guideCompleted: data.guide_completed || false,
+            language: (data.language as Language) || 'en',
+            routineCompletion: {
+              morning: [],
+              night: [],
+              lastCompletedDate: null,
+            },
+          };
+          setUser(profile);
+        } else {
+          // No profile found, create one
+          setUser(createDefaultUser(currentUser?.email));
+        }
+      } catch (e) {
+        console.error('Error loading profile:', e);
+        setUser(createDefaultUser(currentUser?.email));
+      }
+      
+      setIsLoading(false);
+    };
+
+    if (!authLoading) {
+      loadProfile();
+    }
+  }, [userId, currentUser?.email, authLoading]);
+
+  // Save profile to database when it changes
+  const saveProfile = async (updates: Partial<UserProfile>) => {
     if (!userId) return;
+
     try {
-      localStorage.setItem(getUserStorageKey(userId), JSON.stringify(user));
+      const dbUpdates: Record<string, unknown> = {};
+      
+      if (updates.nickname !== undefined) dbUpdates.nickname = updates.nickname;
+      if (updates.skinConcerns !== undefined) dbUpdates.skin_concerns = updates.skinConcerns;
+      if (updates.hairType !== undefined) dbUpdates.hair_type = updates.hairType;
+      if (updates.hairConcerns !== undefined) dbUpdates.hair_concerns = updates.hairConcerns;
+      if (updates.goals !== undefined) dbUpdates.goals = updates.goals;
+      if (updates.isPremium !== undefined) dbUpdates.is_premium = updates.isPremium;
+      if (updates.points !== undefined) dbUpdates.points = updates.points;
+      if (updates.streak !== undefined) dbUpdates.streak = updates.streak;
+      if (updates.onboardingComplete !== undefined) dbUpdates.onboarding_complete = updates.onboardingComplete;
+      if (updates.guideCompleted !== undefined) dbUpdates.guide_completed = updates.guideCompleted;
+      if (updates.language !== undefined) dbUpdates.language = updates.language;
+
+      if (Object.keys(dbUpdates).length > 0) {
+        const { error } = await supabase
+          .from('profiles')
+          .update(dbUpdates)
+          .eq('user_id', userId);
+
+        if (error) {
+          console.error('Error saving profile:', error);
+        }
+      }
     } catch (e) {
-      console.warn('Failed to save user to localStorage');
+      console.error('Error saving profile:', e);
     }
-  }, [user, userId]);
+  };
 
   const updateUser = (updates: Partial<UserProfile>) => {
     setUser(prev => ({ ...prev, ...updates }));
+    saveProfile(updates);
   };
 
   const completeOnboarding = () => {
-    setUser(prev => ({ ...prev, onboardingComplete: true }));
+    updateUser({ onboardingComplete: true });
   };
 
   const setGuideCompleted = (completed: boolean) => {
-    setUser(prev => ({ ...prev, guideCompleted: completed }));
+    updateUser({ guideCompleted: completed });
   };
 
   const t = (key: TranslationKey): string => {
@@ -213,7 +226,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const setLanguage = (lang: Language) => {
-    setUser(prev => ({ ...prev, language: lang }));
+    updateUser({ language: lang });
   };
 
   const updateRoutineCompletion = (completion: RoutineCompletion) => {
@@ -224,9 +237,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         lastCompletedDate: getTodayDateString(),
       },
     }));
+    // Note: Routine completion is not persisted to DB yet (could be added later)
   };
 
-  // Compute glow score dynamically
   const glowScore = calculateGlowScores(user);
 
   return (
@@ -239,13 +252,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setLanguage,
       updateRoutineCompletion,
       glowScore,
+      isLoading: isLoading || authLoading,
     }}>
       {children}
     </UserContext.Provider>
   );
 };
 
-// Hook to access user context - must be used within UserProvider
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {

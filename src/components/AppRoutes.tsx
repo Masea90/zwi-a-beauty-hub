@@ -22,6 +22,7 @@ import RewardsPage from "@/pages/RewardsPage";
 import LoginPage from "@/pages/LoginPage";
 import LanguageSettingsPage from "@/pages/LanguageSettingsPage";
 import ProfileEditPage from "@/pages/ProfileEditPage";
+import NotificationSettingsPage from "@/pages/NotificationSettingsPage";
 import NotFound from "@/pages/NotFound";
 
 /**
@@ -81,6 +82,7 @@ export function AppRoutes() {
         <Route path="/rewards" element={<RewardsPage />} />
         <Route path="/premium" element={<PremiumScreen />} />
         <Route path="/settings/language" element={<LanguageSettingsPage />} />
+        <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
         
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />

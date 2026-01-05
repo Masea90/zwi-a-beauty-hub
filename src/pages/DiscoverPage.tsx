@@ -12,15 +12,18 @@ import {
   RecommendedProduct 
 } from '@/lib/recommendations';
 import { TranslationKey } from '@/lib/i18n';
-
+import { Button } from '@/components/ui/button';
 const DiscoverPage = () => {
   const { t, user } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<number[]>([]);
 
+  // Check if user has completed their profile
+  const hasProfile = user.skinConcerns.length > 0 || user.hairType || user.goals.length > 0;
+
   // Get personalized recommendations with rotation
   const topPick = useMemo(() => getTopRecommendation(user), [user]);
-  const profilePicks = useMemo(() => getProfileRecommendations(user, 3), [user]);
+  const profilePicks = useMemo(() => getProfileRecommendations(user, 2), [user]);
   
   // Get IDs of products already shown to exclude from community section
   const shownIds = useMemo(() => {
@@ -61,6 +64,14 @@ const DiscoverPage = () => {
     return translationKey ? t(translationKey) : tag;
   };
 
+  // Get the "Recommended because you selected X" text
+  const getRecommendedBecauseText = (product: RecommendedProduct): string => {
+    if (product.recommendedBecause && product.recommendedBecause.length > 0) {
+      return `Recommended because you selected ${product.recommendedBecause.join(' & ')}`;
+    }
+    return '';
+  };
+
   // Get the main concern this product solves for the user
   const getSolvesText = (product: RecommendedProduct): string => {
     if (product.matchReasons.length > 0) {
@@ -84,8 +95,30 @@ const DiscoverPage = () => {
           />
         </div>
 
+        {/* No Profile Message */}
+        {!hasProfile && (
+          <div className="bg-gradient-to-br from-maseya-cream to-maseya-sage/20 rounded-2xl p-6 border border-maseya-sage/30 text-center space-y-4">
+            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-display text-lg font-semibold text-foreground mb-2">
+                {t('completeProfileTitle')}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t('completeProfileDesc')}
+              </p>
+            </div>
+            <Link to="/profile">
+              <Button className="w-full">
+                {t('completeProfile')}
+              </Button>
+            </Link>
+          </div>
+        )}
+
         {/* Top Pick - Hero Section */}
-        {filteredTopPick && (
+        {hasProfile && filteredTopPick && (
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -110,12 +143,13 @@ const DiscoverPage = () => {
               t={t}
               getTagLabel={getTagLabel}
               getSolvesText={getSolvesText}
+              getRecommendedBecauseText={getRecommendedBecauseText}
             />
           </section>
         )}
 
         {/* Because of Your Profile Section */}
-        {filteredProfilePicks.length > 0 && (
+        {hasProfile && filteredProfilePicks.length > 0 && (
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -143,6 +177,7 @@ const DiscoverPage = () => {
                   t={t}
                   getTagLabel={getTagLabel}
                   getSolvesText={getSolvesText}
+                  getRecommendedBecauseText={getRecommendedBecauseText}
                 />
               ))}
             </div>
@@ -202,10 +237,12 @@ interface TopPickCardProps {
   t: (key: TranslationKey) => string;
   getTagLabel: (tag: string) => string;
   getSolvesText: (product: RecommendedProduct) => string;
+  getRecommendedBecauseText: (product: RecommendedProduct) => string;
 }
 
-const TopPickCard = ({ product, isFavorite, onToggleFavorite, t, getTagLabel, getSolvesText }: TopPickCardProps) => {
+const TopPickCard = ({ product, isFavorite, onToggleFavorite, t, getTagLabel, getSolvesText, getRecommendedBecauseText }: TopPickCardProps) => {
   const solvesText = getSolvesText(product);
+  const recommendedBecause = getRecommendedBecauseText(product);
 
   return (
     <Link
@@ -256,9 +293,16 @@ const TopPickCard = ({ product, isFavorite, onToggleFavorite, t, getTagLabel, ge
             <span className="text-sm font-medium text-foreground">{product.price}</span>
           </div>
           
+          {/* Recommended because - the key personalization message */}
+          {recommendedBecause && (
+            <p className="text-xs text-muted-foreground mt-2 italic line-clamp-2">
+              🎯 {recommendedBecause}
+            </p>
+          )}
+          
           {/* Solves concern */}
           {solvesText && (
-            <p className="text-sm text-primary mt-2 font-medium">
+            <p className="text-sm text-primary mt-1 font-medium">
               ✨ {solvesText}
             </p>
           )}
@@ -288,10 +332,12 @@ interface ProfilePickCardProps {
   t: (key: TranslationKey) => string;
   getTagLabel: (tag: string) => string;
   getSolvesText: (product: RecommendedProduct) => string;
+  getRecommendedBecauseText: (product: RecommendedProduct) => string;
 }
 
-const ProfilePickCard = ({ product, isFavorite, onToggleFavorite, t, getTagLabel, getSolvesText }: ProfilePickCardProps) => {
+const ProfilePickCard = ({ product, isFavorite, onToggleFavorite, t, getTagLabel, getSolvesText, getRecommendedBecauseText }: ProfilePickCardProps) => {
   const solvesText = getSolvesText(product);
+  const recommendedBecause = getRecommendedBecauseText(product);
 
   return (
     <Link
@@ -331,6 +377,13 @@ const ProfilePickCard = ({ product, isFavorite, onToggleFavorite, t, getTagLabel
             />
           </button>
         </div>
+        
+        {/* Recommended because */}
+        {recommendedBecause && (
+          <p className="text-[10px] text-muted-foreground mt-1 italic line-clamp-2">
+            🎯 {recommendedBecause}
+          </p>
+        )}
         
         {/* Solves concern - the key selling point */}
         {solvesText && (

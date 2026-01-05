@@ -324,6 +324,11 @@ export const translations = {
     reasonAllNatural: 'All-natural ingredients',
     reasonGentleFormula: 'Gentle, clean formula',
     
+    // Profile completion prompts
+    completeProfileTitle: 'Tell us about you',
+    completeProfileDesc: 'Complete your profile to get personalized product recommendations based on your skin type, hair type, and beauty goals.',
+    completeProfile: 'Complete My Profile',
+    
     // Product descriptions - Real products
     weledaSkinFoodDesc: 'Iconic intensive moisturizer with plant extracts and essential oils. Nourishes and protects very dry, rough skin.',
     paiRosehipDesc: 'Award-winning organic rosehip oil with CO2 extraction. Reduces scars, fine lines, and evens skin tone naturally.',
@@ -653,6 +658,11 @@ export const translations = {
     reasonAllNatural: 'Ingredientes 100% naturales',
     reasonGentleFormula: 'Fórmula suave y limpia',
     
+    // Profile completion prompts
+    completeProfileTitle: 'Cuéntanos sobre ti',
+    completeProfileDesc: 'Completa tu perfil para obtener recomendaciones personalizadas basadas en tu tipo de piel, cabello y objetivos de belleza.',
+    completeProfile: 'Completar mi perfil',
+    
     // Product descriptions - Real products
     weledaSkinFoodDesc: 'Hidratante intensivo icónico con extractos vegetales y aceites esenciales. Nutre y protege la piel muy seca.',
     paiRosehipDesc: 'Aceite de rosa mosqueta orgánico premiado con extracción CO2. Reduce cicatrices, líneas finas y unifica el tono.',
@@ -981,6 +991,11 @@ export const translations = {
     reasonNourishesHair: 'Nourrit et répare les cheveux',
     reasonAllNatural: 'Ingrédients 100% naturels',
     reasonGentleFormula: 'Formule douce et clean',
+    
+    // Profile completion prompts
+    completeProfileTitle: 'Parlez-nous de vous',
+    completeProfileDesc: 'Complétez votre profil pour obtenir des recommandations personnalisées basées sur votre type de peau, cheveux et objectifs beauté.',
+    completeProfile: 'Compléter mon profil',
     
     // Product descriptions - Real products
     weledaSkinFoodDesc: 'Hydratant intensif emblématique aux extraits de plantes et huiles essentielles. Nourrit et protège les peaux très sèches.',

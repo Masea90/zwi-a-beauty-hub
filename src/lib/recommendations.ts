@@ -32,6 +32,7 @@ export interface Product {
 export interface RecommendedProduct extends Product {
   matchScore: number;
   matchReasons: TranslationKey[];
+  recommendedBecause: string[]; // User-facing "because you selected X" reasons
 }
 
 // Real product catalog - clean, bio, natural beauty products
@@ -182,7 +183,7 @@ export const productCatalog: Product[] = [
   },
 ];
 
-// Match reasons based on profile
+// Match reasons based on profile - returns translation keys
 const getMatchReasons = (product: Product, user: UserProfile): TranslationKey[] => {
   const reasons: TranslationKey[] = [];
 
@@ -240,6 +241,63 @@ const getMatchReasons = (product: Product, user: UserProfile): TranslationKey[] 
   return reasons.slice(0, 3);
 };
 
+// Concern display names for user-facing text
+const concernDisplayNames: Record<string, string> = {
+  dryness: 'dryness',
+  acne: 'acne & breakouts',
+  aging: 'fine lines & aging',
+  sensitivity: 'sensitivity',
+  oiliness: 'oily skin',
+  hyperpigmentation: 'dark spots',
+  dullness: 'dull skin',
+  pores: 'large pores',
+};
+
+const hairTypeDisplayNames: Record<string, string> = {
+  straight: 'straight hair',
+  wavy: 'wavy hair',
+  curly: 'curly hair',
+  coily: 'coily hair',
+};
+
+const goalDisplayNames: Record<string, string> = {
+  clearskin: 'clear skin',
+  healthyhair: 'healthy hair',
+  natural: 'all-natural products',
+  nutrition: 'better nutrition',
+  routine: 'simple routines',
+};
+
+// Get user-facing "Recommended because you selected..." text
+const getRecommendedBecause = (product: Product, user: UserProfile): string[] => {
+  const reasons: string[] = [];
+
+  // Skin concerns
+  const matchingSkinConcerns = product.targetConcerns.filter(c => 
+    user.skinConcerns.includes(c)
+  );
+  matchingSkinConcerns.forEach(concern => {
+    const displayName = concernDisplayNames[concern] || concern;
+    reasons.push(displayName);
+  });
+
+  // Hair type
+  if (product.targetHairTypes.includes(user.hairType) && user.hairType) {
+    const displayName = hairTypeDisplayNames[user.hairType] || user.hairType;
+    reasons.push(displayName);
+  }
+
+  // Goals
+  const matchingGoals = product.targetGoals.filter(g => user.goals.includes(g));
+  matchingGoals.forEach(goal => {
+    const displayName = goalDisplayNames[goal] || goal;
+    reasons.push(displayName);
+  });
+
+  // Return unique reasons, max 2
+  return [...new Set(reasons)].slice(0, 2);
+};
+
 // Calculate match score (0-100)
 const calculateMatchScore = (product: Product, user: UserProfile): number => {
   const hasProfile = user.skinConcerns.length > 0 || user.hairType || user.goals.length > 0;
@@ -284,15 +342,23 @@ const calculateMatchScore = (product: Product, user: UserProfile): number => {
   return Math.max(0, Math.min(100, score));
 };
 
-// Get personalized recommendations
+// Get personalized recommendations - only returns products with profile matches
 export const getRecommendations = (user: UserProfile, limit: number = 6): RecommendedProduct[] => {
+  const hasProfile = user.skinConcerns.length > 0 || user.hairType || user.goals.length > 0;
+  
+  // If no profile, return empty - we only show personalized recommendations
+  if (!hasProfile) {
+    return [];
+  }
+
   const recommendations = productCatalog
     .map(product => ({
       ...product,
       matchScore: calculateMatchScore(product, user),
       matchReasons: getMatchReasons(product, user),
+      recommendedBecause: getRecommendedBecause(product, user),
     }))
-    .filter(p => p.matchScore >= 50)
+    .filter(p => p.matchScore >= 60 && p.recommendedBecause.length > 0) // Only products with clear match
     .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, limit);
 
@@ -307,6 +373,12 @@ export const getTopRecommendation = (user: UserProfile): RecommendedProduct | nu
 
 // Get profile-based recommendations (skin/hair specific, rotates daily)
 export const getProfileRecommendations = (user: UserProfile, limit: number = 3): RecommendedProduct[] => {
+  const hasProfile = user.skinConcerns.length > 0 || user.hairType || user.goals.length > 0;
+  
+  if (!hasProfile) {
+    return [];
+  }
+
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
   
   const allRecs = productCatalog
@@ -314,8 +386,9 @@ export const getProfileRecommendations = (user: UserProfile, limit: number = 3):
       ...product,
       matchScore: calculateMatchScore(product, user),
       matchReasons: getMatchReasons(product, user),
+      recommendedBecause: getRecommendedBecause(product, user),
     }))
-    .filter(p => p.matchScore >= 50 && p.matchReasons.length > 0)
+    .filter(p => p.matchScore >= 60 && p.recommendedBecause.length > 0)
     .sort((a, b) => b.matchScore - a.matchScore);
 
   // Skip top pick and rotate based on day
@@ -342,6 +415,7 @@ export const getCommunityPopular = (limit: number = 2, excludeIds: number[] = []
       ...product,
       matchScore: 85 - (index * 5), // Simulated popularity
       matchReasons: [] as TranslationKey[],
+      recommendedBecause: [] as string[],
       communityUsers: communityUserCounts[product.id] || 200,
     }));
 
@@ -361,8 +435,10 @@ export const getProductWithMatch = (productId: number, user: UserProfile): Recom
     ...product,
     matchScore: calculateMatchScore(product, user),
     matchReasons: getMatchReasons(product, user),
+    recommendedBecause: getRecommendedBecause(product, user),
   };
 };
+
 
 // Tag display names (for translation)
 export const tagTranslations: Record<string, TranslationKey> = {

@@ -46,7 +46,7 @@ const HomePage = () => {
         {/* Greeting */}
         <div className="space-y-1">
           <h1 className="font-display text-2xl font-semibold">
-            {greeting}, {user.name} ☀️
+            {greeting}, {user.nickname || user.name} ☀️
           </h1>
           <p className="text-muted-foreground text-sm italic">{randomQuote}</p>
         </div>

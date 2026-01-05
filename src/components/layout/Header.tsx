@@ -31,7 +31,7 @@ export const Header = ({
         <div className="flex items-center gap-3">
           {isHome ? (
             <Link to="/home" className="flex items-center gap-2">
-              <span className="text-2xl">🌿</span>
+              <img src="/favicon.png" alt="MASEYA" className="w-7 h-7 rounded" />
               <span className="font-display text-xl font-semibold text-primary">
                 MASEYA
               </span>

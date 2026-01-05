@@ -114,8 +114,18 @@ const CommunityPage = () => {
     }
   };
 
+  const MAX_POST_LENGTH = 5000;
+  const MAX_COMMENT_LENGTH = 1000;
+
   const handleCreatePost = async () => {
-    if (!newPostContent.trim() || !currentUser?.id) return;
+    const trimmedContent = newPostContent.trim();
+    if (!trimmedContent || !currentUser?.id) return;
+    
+    // Validate length
+    if (trimmedContent.length > MAX_POST_LENGTH) {
+      toast.error(`Post must be ${MAX_POST_LENGTH} characters or less`);
+      return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -123,7 +133,7 @@ const CommunityPage = () => {
         .from('community_posts')
         .insert({
           user_id: currentUser.id,
-          content: newPostContent.trim(),
+          content: trimmedContent,
           visibility: newPostVisibility,
           tags: [],
         });
@@ -237,7 +247,14 @@ const CommunityPage = () => {
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !showComments || !currentUser?.id) return;
+    const trimmedComment = newComment.trim();
+    if (!trimmedComment || !showComments || !currentUser?.id) return;
+
+    // Validate length
+    if (trimmedComment.length > MAX_COMMENT_LENGTH) {
+      toast.error(`Comment must be ${MAX_COMMENT_LENGTH} characters or less`);
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -245,7 +262,7 @@ const CommunityPage = () => {
         .insert({
           post_id: showComments,
           user_id: currentUser.id,
-          content: newComment.trim(),
+          content: trimmedComment,
         });
 
       if (error) throw error;
@@ -400,8 +417,12 @@ const CommunityPage = () => {
               placeholder={t('communityPostPlaceholder')}
               value={newPostContent}
               onChange={(e) => setNewPostContent(e.target.value)}
+              maxLength={MAX_POST_LENGTH}
               className="min-h-[120px] resize-none"
             />
+            <p className="text-xs text-muted-foreground text-right">
+              {newPostContent.length}/{MAX_POST_LENGTH}
+            </p>
             <div className="flex gap-2">
               <Button
                 variant={newPostVisibility === 'everyone' ? 'default' : 'outline'}
@@ -473,12 +494,18 @@ const CommunityPage = () => {
             )}
           </div>
           <div className="flex gap-2 pt-2 border-t">
-            <Textarea
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="min-h-[60px] resize-none"
-            />
+            <div className="flex-1">
+              <Textarea
+                placeholder="Add a comment..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                maxLength={MAX_COMMENT_LENGTH}
+                className="min-h-[60px] resize-none"
+              />
+              <p className="text-xs text-muted-foreground text-right mt-1">
+                {newComment.length}/{MAX_COMMENT_LENGTH}
+              </p>
+            </div>
             <Button
               onClick={handleAddComment}
               disabled={!newComment.trim()}

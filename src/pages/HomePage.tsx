@@ -5,45 +5,40 @@ import { IngredientAlerts } from '@/components/home/IngredientAlerts';
 import { QuickActions } from '@/components/home/QuickActions';
 import { useUser } from '@/contexts/UserContext';
 
-const dailyQuotes = [
-  "Glow from within, the rest will follow 🌸",
-  "Your skin is a reflection of your inner health ✨",
-  "Nature knows best — trust the process 🌿",
-  "Small steps today, radiant tomorrow 💫",
-];
-
-const todayCards = [
-  {
-    icon: '💧',
-    title: 'Skin Today',
-    subtitle: 'Hydration focus',
-    description: 'Your skin looks a bit dehydrated. Try adding hyaluronic acid to your routine today.',
-    color: 'skin' as const,
-    linkTo: '/discover?category=hydration',
-  },
-  {
-    icon: '✨',
-    title: 'Hair Today',
-    subtitle: 'Scalp care day',
-    description: "It's been 7 days since your last scalp treatment. Consider a gentle exfoliation!",
-    color: 'hair' as const,
-    linkTo: '/remedies?category=hair',
-  },
-  {
-    icon: '🥗',
-    title: 'Nutrition Tip',
-    subtitle: 'Boost your glow',
-    description: 'Vitamin C boosts collagen production. Add some citrus or bell peppers to your meals.',
-    color: 'nutrition' as const,
-    linkTo: '/discover?category=nutrition',
-  },
-];
-
 const HomePage = () => {
-  const { user } = useUser();
+  const { user, t } = useUser();
   const currentHour = new Date().getHours();
-  const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
+  const greeting = currentHour < 12 ? t('goodMorning') : currentHour < 17 ? t('goodAfternoon') : t('goodEvening');
+  
+  const dailyQuotes = [t('quote1'), t('quote2'), t('quote3'), t('quote4')];
   const randomQuote = dailyQuotes[Math.floor(Math.random() * dailyQuotes.length)];
+
+  const todayCards = [
+    {
+      icon: '💧',
+      title: t('skinToday'),
+      subtitle: t('hydrationFocus'),
+      description: t('skinTodayDesc'),
+      color: 'skin' as const,
+      linkTo: '/discover?category=hydration',
+    },
+    {
+      icon: '✨',
+      title: t('hairToday'),
+      subtitle: t('scalpCareDay'),
+      description: t('hairTodayDesc'),
+      color: 'hair' as const,
+      linkTo: '/remedies?category=hair',
+    },
+    {
+      icon: '🥗',
+      title: t('nutritionTip'),
+      subtitle: t('boostYourGlow'),
+      description: t('nutritionTipDesc'),
+      color: 'nutrition' as const,
+      linkTo: '/discover?category=nutrition',
+    },
+  ];
 
   return (
     <AppLayout showSearch showNotifications>
@@ -61,16 +56,16 @@ const HomePage = () => {
           <div className="flex items-center gap-2">
             <span className="text-xl">🔥</span>
             <div>
-              <p className="font-semibold text-foreground">{user.streak}-day streak</p>
-              <p className="text-xs text-muted-foreground">Keep it up!</p>
+              <p className="font-semibold text-foreground">{user.streak}-{t('streak')}</p>
+              <p className="text-xs text-muted-foreground">{t('keepItUp')}</p>
             </div>
           </div>
           <div className="w-px h-10 bg-border" />
           <div className="flex items-center gap-2">
             <span className="text-xl">⭐</span>
             <div>
-              <p className="font-semibold text-foreground">{user.points} points</p>
-              <p className="text-xs text-muted-foreground">Silver tier</p>
+              <p className="font-semibold text-foreground">{user.points} {t('points')}</p>
+              <p className="text-xs text-muted-foreground">{t('silver')} {t('tier').toLowerCase()}</p>
             </div>
           </div>
         </div>

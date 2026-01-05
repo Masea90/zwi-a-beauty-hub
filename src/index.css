@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ZWINA Design System - Warm & Organic Natural Beauty */
+/* MASEYA Design System - Warm & Organic Natural Beauty */
 /* All colors MUST be HSL */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
@@ -47,16 +47,16 @@
 
     --radius: 1rem;
 
-    /* Custom ZWINA colors */
-    --zwina-olive: 85 25% 35%;
-    --zwina-olive-light: 85 20% 45%;
-    --zwina-beige: 35 30% 96%;
-    --zwina-cream: 40 40% 98%;
-    --zwina-nude: 25 35% 88%;
-    --zwina-terracotta: 20 50% 65%;
-    --zwina-rose: 350 40% 80%;
-    --zwina-gold: 40 60% 55%;
-    --zwina-sage: 100 15% 75%;
+    /* Custom MASEYA colors */
+    --maseya-olive: 85 25% 35%;
+    --maseya-olive-light: 85 20% 45%;
+    --maseya-beige: 35 30% 96%;
+    --maseya-cream: 40 40% 98%;
+    --maseya-nude: 25 35% 88%;
+    --maseya-terracotta: 20 50% 65%;
+    --maseya-rose: 350 40% 80%;
+    --maseya-gold: 40 60% 55%;
+    --maseya-sage: 100 15% 75%;
 
     /* Glow Score Colors */
     --glow-skin: 350 50% 70%;
@@ -104,15 +104,15 @@
     --input: 25 15% 20%;
     --ring: 85 30% 55%;
 
-    --zwina-olive: 85 30% 55%;
-    --zwina-olive-light: 85 25% 65%;
-    --zwina-beige: 25 15% 10%;
-    --zwina-cream: 25 15% 14%;
-    --zwina-nude: 25 20% 25%;
-    --zwina-terracotta: 20 45% 50%;
-    --zwina-rose: 350 35% 60%;
-    --zwina-gold: 40 50% 50%;
-    --zwina-sage: 100 12% 35%;
+    --maseya-olive: 85 30% 55%;
+    --maseya-olive-light: 85 25% 65%;
+    --maseya-beige: 25 15% 10%;
+    --maseya-cream: 25 15% 14%;
+    --maseya-nude: 25 20% 25%;
+    --maseya-terracotta: 20 45% 50%;
+    --maseya-rose: 350 35% 60%;
+    --maseya-gold: 40 50% 50%;
+    --maseya-sage: 100 12% 35%;
 
     --glow-skin: 350 45% 55%;
     --glow-hair: 85 35% 45%;
@@ -154,18 +154,18 @@
   }
 
   .text-gradient-gold {
-    background: linear-gradient(135deg, hsl(var(--zwina-gold)), hsl(var(--zwina-terracotta)));
+    background: linear-gradient(135deg, hsl(var(--maseya-gold)), hsl(var(--maseya-terracotta)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .bg-gradient-warm {
-    background: linear-gradient(135deg, hsl(var(--zwina-cream)), hsl(var(--zwina-nude)));
+    background: linear-gradient(135deg, hsl(var(--maseya-cream)), hsl(var(--maseya-nude)));
   }
 
   .bg-gradient-olive {
-    background: linear-gradient(135deg, hsl(var(--zwina-olive)), hsl(var(--zwina-olive-light)));
+    background: linear-gradient(135deg, hsl(var(--maseya-olive)), hsl(var(--maseya-olive-light)));
   }
 
   .shadow-warm {

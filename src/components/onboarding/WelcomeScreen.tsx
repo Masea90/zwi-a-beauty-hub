@@ -1,10 +1,11 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Leaf, Heart } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
 
 export const WelcomeScreen = () => {
   const navigate = useNavigate();
+  const { t } = useUser();
 
   return (
     <div className="min-h-screen bg-gradient-warm flex flex-col items-center justify-center p-6 text-center">
@@ -14,9 +15,9 @@ export const WelcomeScreen = () => {
           <div className="w-24 h-24 bg-card rounded-full flex items-center justify-center shadow-warm-lg animate-pulse-soft">
             <span className="text-5xl">🌿</span>
           </div>
-          <h1 className="font-display text-4xl font-bold text-primary">ZWINA</h1>
+          <h1 className="font-display text-4xl font-bold text-primary">MASEYA</h1>
           <p className="text-muted-foreground text-lg">
-            Your natural beauty journey starts here
+            {t('tagline')}
           </p>
         </div>
 
@@ -27,8 +28,8 @@ export const WelcomeScreen = () => {
               <Sparkles className="w-5 h-5 text-glow-skin" />
             </div>
             <div>
-              <p className="font-medium text-foreground">Personalized Skin Care</p>
-              <p className="text-sm text-muted-foreground">Tailored to your unique skin</p>
+              <p className="font-medium text-foreground">{t('premiumFeature1')}</p>
+              <p className="text-sm text-muted-foreground">{t('tagline')}</p>
             </div>
           </div>
 
@@ -37,8 +38,8 @@ export const WelcomeScreen = () => {
               <Leaf className="w-5 h-5 text-glow-hair" />
             </div>
             <div>
-              <p className="font-medium text-foreground">Natural Remedies</p>
-              <p className="text-sm text-muted-foreground">Clean, organic solutions</p>
+              <p className="font-medium text-foreground">{t('freeFeature3')}</p>
+              <p className="text-sm text-muted-foreground">{t('natural')}</p>
             </div>
           </div>
 
@@ -47,8 +48,8 @@ export const WelcomeScreen = () => {
               <Heart className="w-5 h-5 text-glow-nutrition" />
             </div>
             <div>
-              <p className="font-medium text-foreground">Supportive Community</p>
-              <p className="text-sm text-muted-foreground">Connect with like-minded women</p>
+              <p className="font-medium text-foreground">{t('community')}</p>
+              <p className="text-sm text-muted-foreground">{t('freeFeature4')}</p>
             </div>
           </div>
         </div>
@@ -56,16 +57,16 @@ export const WelcomeScreen = () => {
         {/* CTA */}
         <div className="space-y-3 pt-4">
           <Button
-            onClick={() => navigate('/onboarding/quiz')}
+            onClick={() => navigate('/onboarding/language')}
             className="w-full h-14 text-lg font-medium rounded-2xl bg-gradient-olive hover:opacity-90 transition-all shadow-warm-lg"
           >
-            Get Started
+            {t('getStarted')}
           </Button>
           <button
             onClick={() => navigate('/login')}
             className="text-muted-foreground hover:text-primary transition-colors text-sm"
           >
-            Already have an account? <span className="font-medium underline">Sign in</span>
+            {t('alreadyHaveAccount')} <span className="font-medium underline">{t('signIn')}</span>
           </button>
         </div>
       </div>

@@ -1,15 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Check, ChevronDown, ChevronUp, ChevronLeft, Info } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, ChevronLeft, Info, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { ProfileBadge } from '@/components/profile/ProfileBadge';
+import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { supabase } from '@/integrations/supabase/client';
 
 const skinConcernOptions = [
   { id: 'acne', labelKey: 'acne', emoji: '🔴' },
@@ -133,7 +137,9 @@ const OptionButton = ({ selected, onClick, emoji, label }: OptionButtonProps) =>
 const ProfileEditPage = () => {
   const navigate = useNavigate();
   const { user, updateUser, t } = useUser();
+  const { currentUser } = useAuth();
   const { percentage, tier, tierLabel } = useProfileCompleteness(user);
+  const { detectLocation, isLoading: isDetectingLocation } = useGeolocation();
   
   const [nickname, setNickname] = useState(user.nickname || '');
   const [skinConcerns, setSkinConcerns] = useState<string[]>(user.skinConcerns);
@@ -144,8 +150,50 @@ const ProfileEditPage = () => {
   const [sensitivities, setSensitivities] = useState<string[]>(user.sensitivities || []);
   const [country, setCountry] = useState(user.country || '');
   const [climateType, setClimateType] = useState(user.climateType || '');
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [hasProfilePhoto, setHasProfilePhoto] = useState(user.hasProfilePhoto || false);
   
-  const [openSection, setOpenSection] = useState<string | null>('nickname');
+  const [openSection, setOpenSection] = useState<string | null>('photo');
+
+  // Load existing photo URL on mount
+  useEffect(() => {
+    const loadPhotoUrl = async () => {
+      if (!currentUser?.id) return;
+      
+      try {
+        const { data: files } = await supabase.storage
+          .from('avatars')
+          .list(currentUser.id);
+        
+        if (files && files.length > 0) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(`${currentUser.id}/${files[0].name}`);
+          setPhotoUrl(`${publicUrl}?t=${Date.now()}`);
+        }
+      } catch (error) {
+        console.error('Error loading photo:', error);
+      }
+    };
+    
+    loadPhotoUrl();
+  }, [currentUser?.id]);
+
+  const handleDetectLocation = async () => {
+    const result = await detectLocation();
+    if (result) {
+      if (result.country) setCountry(result.country);
+      if (result.climateType) setClimateType(result.climateType);
+      toast.success('Location detected!');
+    } else {
+      toast.error('Could not detect location. Please select manually.');
+    }
+  };
+
+  const handlePhotoChange = (url: string | null, hasPhoto: boolean) => {
+    setPhotoUrl(url);
+    setHasProfilePhoto(hasPhoto);
+  };
 
   const toggleSkinConcern = (id: string) => {
     setSkinConcerns(prev =>
@@ -190,6 +238,7 @@ const ProfileEditPage = () => {
       sensitivities,
       country,
       climateType,
+      hasProfilePhoto,
     });
     toast.success(t('save') + ' ✓');
     navigate('/profile');
@@ -204,7 +253,8 @@ const ProfileEditPage = () => {
     ageRange !== (user.ageRange || '') ||
     JSON.stringify(sensitivities) !== JSON.stringify(user.sensitivities || []) ||
     country !== (user.country || '') ||
-    climateType !== (user.climateType || '');
+    climateType !== (user.climateType || '') ||
+    hasProfilePhoto !== (user.hasProfilePhoto || false);
 
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-lg mx-auto">
@@ -245,6 +295,20 @@ const ProfileEditPage = () => {
 
       <main className="flex-1 pb-36 overflow-y-auto">
         <div className="px-4 py-6 space-y-4 animate-fade-in">
+          {/* Profile Photo */}
+          <Section
+            title="📷 Profile Photo"
+            isOpen={openSection === 'photo'}
+            onToggle={() => setOpenSection(openSection === 'photo' ? null : 'photo')}
+            hint="Add a photo to personalize your profile"
+          >
+            <ProfilePhotoUpload
+              currentPhotoUrl={photoUrl}
+              onPhotoChange={handlePhotoChange}
+              nickname={nickname || user.name}
+            />
+          </Section>
+
           {/* Nickname */}
           <Section
             title={`👤 ${t('nickname')}`}
@@ -386,6 +450,36 @@ const ProfileEditPage = () => {
             hint="Climate affects skin and hair care needs"
           >
             <div className="space-y-4">
+              {/* Auto-detect button */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDetectLocation}
+                disabled={isDetectingLocation}
+                className="w-full gap-2"
+              >
+                {isDetectingLocation ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Detecting...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-4 h-4" />
+                    Detect My Location
+                  </>
+                )}
+              </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">or select manually</span>
+                </div>
+              </div>
+
               <div>
                 <label className="text-sm text-muted-foreground mb-2 block">Country</label>
                 <input

@@ -43,14 +43,17 @@ export interface UserProfile {
   isPremium: boolean;
   points: number;
   streak: number;
-  glowScore: {
-    skin: number;
-    hair: number;
-    nutrition: number;
-  };
+  // Glow score is now computed dynamically
   onboardingComplete: boolean;
   language: Language;
   routineCompletion: RoutineCompletion;
+}
+
+interface GlowScores {
+  skin: number;
+  hair: number;
+  nutrition: number;
+  overall: number;
 }
 
 interface UserContextType {
@@ -60,6 +63,7 @@ interface UserContextType {
   t: (key: TranslationKey) => string;
   setLanguage: (lang: Language) => void;
   updateRoutineCompletion: (completion: RoutineCompletion) => void;
+  glowScore: GlowScores;
 }
 
 const getTodayDateString = (): string => {
@@ -75,11 +79,6 @@ const createDefaultUser = (): UserProfile => ({
   isPremium: false,
   points: 245,
   streak: 5,
-  glowScore: {
-    skin: 78,
-    hair: 85,
-    nutrition: 62,
-  },
   onboardingComplete: false,
   language: getStoredLanguage(),
   routineCompletion: {
@@ -88,6 +87,53 @@ const createDefaultUser = (): UserProfile => ({
     lastCompletedDate: null,
   },
 });
+
+// Calculate dynamic glow scores based on user actions
+const calculateGlowScores = (user: UserProfile): GlowScores => {
+  // Base scores
+  let skinScore = 30;
+  let hairScore = 30;
+  let nutritionScore = 30;
+
+  // Profile completion bonuses (up to +20 each)
+  if (user.skinConcerns.length > 0) skinScore += 10;
+  if (user.skinConcerns.length >= 2) skinScore += 10;
+  if (user.hairType) hairScore += 10;
+  if (user.hairConcerns.length > 0) hairScore += 10;
+  if (user.goals.length > 0) nutritionScore += 10;
+  if (user.goals.length >= 2) nutritionScore += 10;
+
+  // Routine completion bonuses (up to +40 each)
+  const morningSteps = user.routineCompletion?.morning?.length || 0;
+  const nightSteps = user.routineCompletion?.night?.length || 0;
+  
+  // Skin benefits from cleansing & moisturizing (morning steps 1,2,3 and night steps 1,2,3,4)
+  const skinRoutineSteps = Math.min(morningSteps, 3) + Math.min(nightSteps, 4);
+  skinScore += Math.round((skinRoutineSteps / 7) * 40);
+
+  // Hair benefits from night routine (steps 3,4 are hair-related)
+  const hairRoutineSteps = nightSteps >= 3 ? 1 : 0;
+  hairScore += hairRoutineSteps * 20;
+  
+  // Nutrition/wellness from consistency and completing full routines
+  const routineCompletionRate = (morningSteps + nightSteps) / 8; // 4 morning + 4 night max
+  nutritionScore += Math.round(routineCompletionRate * 30);
+
+  // Streak bonus (up to +10 each)
+  const streakBonus = Math.min(user.streak, 7) * 1.5;
+  skinScore += Math.round(streakBonus);
+  hairScore += Math.round(streakBonus);
+  nutritionScore += Math.round(streakBonus);
+
+  // Cap at 100
+  skinScore = Math.min(100, Math.max(0, skinScore));
+  hairScore = Math.min(100, Math.max(0, hairScore));
+  nutritionScore = Math.min(100, Math.max(0, nutritionScore));
+
+  const overall = Math.round((skinScore + hairScore + nutritionScore) / 3);
+
+  return { skin: skinScore, hair: hairScore, nutrition: nutritionScore, overall };
+};
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -145,14 +191,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  // Compute glow score dynamically
+  const glowScore = calculateGlowScores(user);
+
   return (
     <UserContext.Provider value={{ 
       user, 
       updateUser, 
-      completeOnboarding, 
+      completeOnboarding,
       t, 
       setLanguage,
       updateRoutineCompletion,
+      glowScore,
     }}>
       {children}
     </UserContext.Provider>

@@ -71,11 +71,7 @@ const HomePage = () => {
         </div>
 
         {/* Glow Score */}
-        <GlowScore
-          skin={user.glowScore.skin}
-          hair={user.glowScore.hair}
-          nutrition={user.glowScore.nutrition}
-        />
+        <GlowScore />
 
         {/* Quick Actions */}
         <QuickActions />

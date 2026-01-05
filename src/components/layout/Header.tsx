@@ -1,6 +1,7 @@
-import { Bell, Search, Settings } from 'lucide-react';
+import { Search, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 interface HeaderProps {
   title?: string;
@@ -50,12 +51,7 @@ export const Header = ({
               <Search className="w-5 h-5 text-muted-foreground" />
             </Link>
           )}
-          {showNotifications && (
-            <button className="p-2 rounded-full hover:bg-secondary transition-colors relative">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-maseya-terracotta rounded-full" />
-            </button>
-          )}
+          {showNotifications && <NotificationBell />}
           {showSettings && (
             <Link
               to="/settings"

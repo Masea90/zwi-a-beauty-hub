@@ -21,6 +21,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          is_staff_pick: boolean | null
           likes_count: number | null
           tags: string[] | null
           updated_at: string | null
@@ -33,6 +34,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          is_staff_pick?: boolean | null
           likes_count?: number | null
           tags?: string[] | null
           updated_at?: string | null
@@ -45,6 +47,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          is_staff_pick?: boolean | null
           likes_count?: number | null
           tags?: string[] | null
           updated_at?: string | null

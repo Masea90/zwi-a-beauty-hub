@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { useState, useMemo, useCallback } from 'react';
 import { RoutineEditor, CustomStep } from '@/components/routine/RoutineEditor';
 import { useRoutineCompletionSync } from '@/hooks/useRoutineCompletionSync';
+import { useRewards } from '@/hooks/useRewards';
 import { toast } from 'sonner';
 
 type TimeOfDay = 'morning' | 'night';
@@ -54,6 +55,7 @@ const defaultToCustomSteps = (defaults: DefaultRoutineStep[]): CustomStep[] =>
 const RoutinePage = () => {
   const { user, updateUser, updateRoutineCompletion, saveCustomRoutine, t } = useUser();
   const { syncCompletion } = useRoutineCompletionSync();
+  const { awardBadge, recordPoints } = useRewards();
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning');
 
   const completed = user.routineCompletion || { morning: [], night: [], lastCompletedDate: null };
@@ -92,6 +94,18 @@ const RoutinePage = () => {
 
     if (!isCurrentlyCompleted) {
       updateUser({ points: user.points + 5 });
+      recordPoints(5, 'routine_step');
+
+      // Badge: first step ever
+      awardBadge('first_step');
+
+      // Check if full routine completed
+      if (updatedTimeOfDay.length === totalSteps) {
+        updateUser({ points: user.points + 5 + 15 }); // 5 for step + 15 bonus
+        recordPoints(15, 'routine_complete');
+        if (timeOfDay === 'morning') awardBadge('morning_star');
+        if (timeOfDay === 'night') awardBadge('night_owl');
+      }
     }
 
     updateRoutineCompletion(newCompletion);

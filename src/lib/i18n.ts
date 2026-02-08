@@ -515,6 +515,18 @@ export const translations = {
     visitStore: 'Visit Store',
     moreOptions: 'More purchase options',
     officialStore: 'Official Store',
+
+    // Rewards & Badges
+    rewardsTitle: 'Rewards',
+    badgesTab: 'Badges',
+    historyTab: 'History',
+    maxLevelReached: '🎉 Max level reached!',
+    ptsToNextLevel: 'pts to next level',
+    noBadgesYet: 'No badges earned yet',
+    noHistoryYet: 'No point history yet',
+    earnPointsHint: 'Complete routine steps and post in the community to earn points!',
+    earned: 'Earned',
+    levels: 'Levels',
   },
   es: {
     // Brand
@@ -1024,6 +1036,18 @@ export const translations = {
     visitStore: 'Visitar Tienda',
     moreOptions: 'Más opciones de compra',
     officialStore: 'Tienda Oficial',
+
+    // Rewards & Badges
+    rewardsTitle: 'Recompensas',
+    badgesTab: 'Insignias',
+    historyTab: 'Historial',
+    maxLevelReached: '🎉 ¡Nivel máximo alcanzado!',
+    ptsToNextLevel: 'pts para el siguiente nivel',
+    noBadgesYet: 'Aún no tienes insignias',
+    noHistoryYet: 'Sin historial de puntos aún',
+    earnPointsHint: '¡Completa tu rutina y publica en la comunidad para ganar puntos!',
+    earned: 'Obtenida',
+    levels: 'Niveles',
   },
   fr: {
     // Brand
@@ -1533,6 +1557,18 @@ export const translations = {
     visitStore: 'Visiter la Boutique',
     moreOptions: 'Plus d\'options d\'achat',
     officialStore: 'Boutique Officielle',
+
+    // Rewards & Badges
+    rewardsTitle: 'Récompenses',
+    badgesTab: 'Badges',
+    historyTab: 'Historique',
+    maxLevelReached: '🎉 Niveau maximum atteint !',
+    ptsToNextLevel: 'pts pour le prochain niveau',
+    noBadgesYet: 'Pas encore de badges',
+    noHistoryYet: 'Pas encore d\'historique de points',
+    earnPointsHint: 'Complétez votre routine et publiez dans la communauté pour gagner des points !',
+    earned: 'Obtenu',
+    levels: 'Niveaux',
   },
 };
 

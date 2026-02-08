@@ -83,6 +83,7 @@ const CommunityPage = () => {
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [showOriginal, setShowOriginal] = useState<Set<string>>(new Set());
   const [translatedPosts, setTranslatedPosts] = useState<Map<string, string>>(new Map());
+  const [translatingPosts, setTranslatingPosts] = useState<Set<string>>(new Set());
   // Load posts
   useEffect(() => {
     loadPosts();
@@ -405,40 +406,63 @@ const CommunityPage = () => {
     setEditContent(post.content);
   };
 
-  // Simple language detection - checks if text contains non-ASCII characters typical of other languages
-  const detectNonUserLanguage = (text: string): boolean => {
-    const userLang = user.language;
-    // Check for French-specific characters if user is not French
-    if (userLang !== 'fr' && /[àâäéèêëïîôùûüÿœæç]/i.test(text)) return true;
-    // Check for Spanish-specific characters if user is not Spanish
-    if (userLang !== 'es' && /[áéíóúüñ¿¡]/i.test(text)) return true;
-    return false;
-  };
+  const TRANSLATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate`;
 
-  // Mock translation function - in production, use an AI translation API
   const getTranslatedContent = async (postId: string, content: string): Promise<string> => {
-    // Check if already translated
+    // Return cached translation if available
     if (translatedPosts.has(postId)) {
       return translatedPosts.get(postId)!;
     }
-    
-    // For demo purposes, just add a note - in production use real translation
-    // This would call your AI gateway or translation service
-    const translated = `[${t('translatedFrom')} ${detectNonUserLanguage(content) ? 'autre langue' : 'English'}]\n\n${content}`;
-    setTranslatedPosts(prev => new Map(prev).set(postId, translated));
-    return translated;
+
+    setTranslatingPosts(prev => new Set(prev).add(postId));
+
+    try {
+      const resp = await fetch(TRANSLATE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ text: content, targetLanguage: user.language }),
+      });
+
+      if (!resp.ok) {
+        throw new Error('Translation failed');
+      }
+
+      const data = await resp.json();
+      const translated = data.translatedText || content;
+      setTranslatedPosts(prev => new Map(prev).set(postId, translated));
+      return translated;
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast.error(t('chatbotError'));
+      return content;
+    } finally {
+      setTranslatingPosts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(postId);
+        return newSet;
+      });
+    }
   };
 
-  const toggleTranslation = (postId: string) => {
-    setShowOriginal(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(postId)) {
+  const toggleTranslation = async (postId: string, content: string) => {
+    if (showOriginal.has(postId)) {
+      // Currently showing original, switch to translated
+      setShowOriginal(prev => {
+        const newSet = new Set(prev);
         newSet.delete(postId);
-      } else {
-        newSet.add(postId);
+        return newSet;
+      });
+    } else {
+      // Currently showing translated (or default), switch to original
+      // But first, make sure we have a translation
+      if (!translatedPosts.has(postId)) {
+        await getTranslatedContent(postId, content);
       }
-      return newSet;
-    });
+      setShowOriginal(prev => new Set(prev).add(postId));
+    }
   };
 
   const getTimeAgo = (date: string) => {
@@ -560,21 +584,26 @@ const CommunityPage = () => {
                 {/* Content */}
                 <div className="space-y-2">
                   <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap">
-                    {showOriginal.has(post.id) ? post.content : (translatedPosts.get(post.id) || post.content)}
+                    {showOriginal.has(post.id) ? (translatedPosts.get(post.id) || post.content) : post.content}
                   </p>
                   
-                  {/* Translation toggle - show for all posts to allow translation */}
+                  {/* Translation toggle */}
                   <button
-                    onClick={() => {
-                      if (!translatedPosts.has(post.id) && !showOriginal.has(post.id)) {
-                        getTranslatedContent(post.id, post.content);
-                      }
-                      toggleTranslation(post.id);
-                    }}
-                    className="flex items-center gap-1 text-xs text-primary hover:underline"
+                    onClick={() => toggleTranslation(post.id, post.content)}
+                    disabled={translatingPosts.has(post.id)}
+                    className="flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-50"
                   >
-                    <Languages className="w-3 h-3" />
-                    {showOriginal.has(post.id) ? t('seeTranslation') : t('seeOriginal')}
+                    {translatingPosts.has(post.id) ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        {t('chatbotTyping')}
+                      </>
+                    ) : (
+                      <>
+                        <Languages className="w-3 h-3" />
+                        {showOriginal.has(post.id) ? t('seeOriginal') : t('seeTranslation')}
+                      </>
+                    )}
                   </button>
                 </div>
 

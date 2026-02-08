@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useUser } from '@/contexts/UserContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useRewards } from '@/hooks/useRewards';
 import { MessageCircle, MoreHorizontal, Plus, Users, Lock, Globe, Send, Loader2, Pencil, Trash2, Languages, Sparkles, Star, ImagePlus, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -105,9 +106,10 @@ const calculateSimilarity = (
 };
 
 const CommunityPage = () => {
-  const { t, user } = useUser();
+  const { t, user, updateUser } = useUser();
   const { currentUser } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { awardBadge, recordPoints } = useRewards();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -394,6 +396,14 @@ const CommunityPage = () => {
           moderation_reason: moderationReason,
         } as any);
       if (error) throw error;
+
+      // 4. Award points & badges for posting
+      if (moderationStatus === 'approved') {
+        updateUser({ points: user.points + 5 });
+        recordPoints(5, 'community_post');
+        awardBadge('first_post');
+        if (imageUrl) awardBadge('photo_sharer');
+      }
 
       if (moderationStatus === 'pending_review') {
         toast.info('Your post is under review and will be visible once approved 🔍');

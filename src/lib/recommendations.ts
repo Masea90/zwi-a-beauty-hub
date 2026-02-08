@@ -2,14 +2,10 @@ import { UserProfile } from '@/contexts/UserContext';
 import { TranslationKey } from '@/lib/i18n';
 
 // Product images
-import weledaSkinFood from '@/assets/products/weleda-skin-food.jpg';
-import paiRosehipOil from '@/assets/products/pai-rosehip-oil.jpg';
 import ordinaryNiacinamide from '@/assets/products/ordinary-niacinamide.jpg';
 import olaplexHairOil from '@/assets/products/olaplex-hair-oil.jpg';
 import ceraveCleanser from '@/assets/products/cerave-cleanser.jpg';
-import kloraneHairMask from '@/assets/products/klorane-hair-mask.jpg';
 import nuxeOil from '@/assets/products/nuxe-oil.jpg';
-import renSerum from '@/assets/products/ren-serum.jpg';
 import moroccanoilTreatment from '@/assets/products/moroccanoil-treatment.jpg';
 
 export interface Product {
@@ -38,38 +34,6 @@ export interface RecommendedProduct extends Product {
 // Real product catalog - clean, bio, natural beauty products
 export const productCatalog: Product[] = [
   {
-    id: 1,
-    name: 'Skin Food Original',
-    brand: 'Weleda',
-    image: weledaSkinFood,
-    category: 'skin',
-    tags: ['natural', 'organic'],
-    targetConcerns: ['dryness', 'sensitivity'],
-    targetHairTypes: [],
-    targetGoals: ['clearskin', 'natural'],
-    avoidFor: ['oiliness'],
-    harshIngredients: [],
-    price: '€12.95',
-    affiliateUrl: 'https://www.weleda.com',
-    description: 'weledaSkinFoodDesc',
-  },
-  {
-    id: 2,
-    name: 'Rosehip BioRegenerate Oil',
-    brand: 'Pai Skincare',
-    image: paiRosehipOil,
-    category: 'skin',
-    tags: ['organic', 'vegan', 'cruelty-free'],
-    targetConcerns: ['aging', 'hyperpigmentation', 'dullness', 'dryness'],
-    targetHairTypes: [],
-    targetGoals: ['clearskin', 'natural'],
-    avoidFor: ['oiliness', 'acne'],
-    harshIngredients: [],
-    price: '€26.00',
-    affiliateUrl: 'https://www.paiskincare.com',
-    description: 'paiRosehipDesc',
-  },
-  {
     id: 3,
     name: 'Niacinamide 10% + Zinc 1%',
     brand: 'The Ordinary',
@@ -82,7 +46,6 @@ export const productCatalog: Product[] = [
     avoidFor: [],
     harshIngredients: [],
     price: '€5.80',
-    affiliateUrl: 'https://theordinary.com',
     description: 'ordinaryNiacinamideDesc',
   },
   {
@@ -98,7 +61,6 @@ export const productCatalog: Product[] = [
     avoidFor: [],
     harshIngredients: [],
     price: '€28.00',
-    affiliateUrl: 'https://olaplex.com',
     description: 'olaplexOilDesc',
   },
   {
@@ -114,24 +76,7 @@ export const productCatalog: Product[] = [
     avoidFor: [],
     harshIngredients: [],
     price: '€9.50',
-    affiliateUrl: 'https://www.cerave.com',
     description: 'ceraveCleanserDesc',
-  },
-  {
-    id: 6,
-    name: 'Mango Butter Hair Mask',
-    brand: 'Klorane',
-    image: kloraneHairMask,
-    category: 'hair',
-    tags: ['natural', 'vegan'],
-    targetConcerns: [],
-    targetHairTypes: ['curly', 'coily', 'wavy'],
-    targetGoals: ['healthyhair', 'natural'],
-    avoidFor: [],
-    harshIngredients: [],
-    price: '€12.90',
-    affiliateUrl: 'https://www.klorane.com',
-    description: 'kloraneHairMaskDesc',
   },
   {
     id: 7,
@@ -146,24 +91,7 @@ export const productCatalog: Product[] = [
     avoidFor: [],
     harshIngredients: [],
     price: '€29.90',
-    affiliateUrl: 'https://www.nuxe.com',
     description: 'nuxeOilDesc',
-  },
-  {
-    id: 8,
-    name: 'Ready Steady Glow Tonic',
-    brand: 'REN Clean Skincare',
-    image: renSerum,
-    category: 'skin',
-    tags: ['natural', 'vegan', 'cruelty-free'],
-    targetConcerns: ['dullness', 'pores', 'hyperpigmentation'],
-    targetHairTypes: [],
-    targetGoals: ['clearskin', 'natural'],
-    avoidFor: ['sensitivity'],
-    harshIngredients: [],
-    price: '€32.00',
-    affiliateUrl: 'https://www.renskincare.com',
-    description: 'renTonicDesc',
   },
   {
     id: 9,
@@ -178,7 +106,6 @@ export const productCatalog: Product[] = [
     avoidFor: [],
     harshIngredients: [],
     price: '€34.85',
-    affiliateUrl: 'https://www.moroccanoil.com',
     description: 'moroccanoilDesc',
   },
 ];

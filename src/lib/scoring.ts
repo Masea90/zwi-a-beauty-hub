@@ -1591,6 +1591,14 @@ const PREG_HARD_CHEESE_TEXT: Record<PregLang, string> = {
 const pregLang = (l?: string): PregLang =>
   l === 'en' || l === 'fr' ? l : 'es';
 
+/** Explanatory factor for the 2023 beverage sweetener penalty. */
+const SWEETENER_BEVERAGE_TEXT: Record<PregLang, string> = {
+  es: 'Contiene edulcorantes: el Nutri-Score 2023 penaliza su presencia en bebidas',
+  en: 'Contains sweeteners: the 2023 Nutri-Score penalises their presence in beverages',
+  fr: 'Contient des édulcorants : le Nutri-Score 2023 pénalise leur présence dans les boissons',
+};
+
+
 /**
  * "Sin azúcar" diet: a WARNING is not a block. Real report ("Lima limón"):
  * users could not tell why one sugary product is "not suitable" and another

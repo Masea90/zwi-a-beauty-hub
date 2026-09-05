@@ -810,6 +810,23 @@ export function calculateScoreBreakdown(
     ['xilitol', /\bxilitol\b|\bxylitol\b|\be967\b/],
     ['sacarina', /\bsacarina\b|\bsaccharin\w*\b|\be954\b/],
   ];
+  // Nutri-Score 2023 (rev. 30/03/2023): non-nutritive sweeteners add +4
+  // negative points, but ONLY for beverages. Polyols (E420/E421/E965/E967/
+  // E968) are caloric sweeteners and are explicitly excluded from this rule.
+  const isNutriBeverage = (): boolean => {
+    if (p.category !== 'food') return false;
+    const raw = (p.raw || {}) as Record<string, unknown>;
+    const cats = Array.isArray(raw.categories_tags) ? (raw.categories_tags as string[]) : [];
+    return detectNutriCategory(cats) === 'beverage';
+  };
+  const hasNonNutritiveSweetener = (): boolean => {
+    const raw = (p.raw || {}) as Record<string, unknown>;
+    const hay = norm(
+      `${p.ingredients_text || ''} ${(Array.isArray(raw.additives_tags) ? (raw.additives_tags as string[]) : []).join(' ')}`,
+    );
+    if (!hay.trim()) return false;
+    return NON_NUTRITIVE_SWEETENERS.some(re => re.test(hay));
+  };
   const maybeAddSweetenersNote = () => {
     if (p.category !== 'food') return;
     const raw = (p.raw || {}) as Record<string, unknown>;
@@ -817,6 +834,16 @@ export function calculateScoreBreakdown(
       `${p.ingredients_text || ''} ${(Array.isArray(raw.additives_tags) ? (raw.additives_tags as string[]) : []).join(' ')}`,
     );
     if (!hay.trim()) return;
+    // Beverages: the 2023 revision penalises their presence — say so instead
+    // of the "no penalty" neutral note (which stays for solid foods).
+    if (isNutriBeverage() && hasNonNutritiveSweetener()) {
+      factors.push({
+        label: SWEETENER_BEVERAGE_TEXT[expLang],
+        delta: null,
+        tone: 'negative',
+      });
+      return;
+    }
     const found = SWEETENERS.filter(([, re]) => re.test(hay)).map(([name]) => name);
     if (found.length === 0) return;
     factors.push({
@@ -826,10 +853,28 @@ export function calculateScoreBreakdown(
     });
   };
 
+  // Official grades published before the 2023 beverage revision (or stale OFF
+  // copies) still rate "zero" sodas as B. Re-apply the rule: a sweetened
+  // beverage can never be better than C, and when we can recompute the full
+  // 2023 score ourselves we take the worse of both.
+  const applyBeverageSweetenerRule = (grade: string): string => {
+    if (!isNutriBeverage() || !hasNonNutritiveSweetener()) return grade;
+    const order = ['a', 'b', 'c', 'd', 'e'];
+    let worst = Math.max(order.indexOf(grade), order.indexOf('c'));
+    const raw = (p.raw || {}) as Record<string, unknown>;
+    const nutri = (raw.nutriments && typeof raw.nutriments === 'object')
+      ? raw.nutriments as Record<string, unknown>
+      : {};
+    const cats = Array.isArray(raw.categories_tags) ? (raw.categories_tags as string[]) : [];
+    const computed = computeNutriScore(nutri, cats, raw);
+    if (computed) worst = Math.max(worst, order.indexOf(computed.grade));
+    return order[worst] || grade;
+  };
 
+  const officialGrade = (p.nutriscore_grade || '').toLowerCase();
+  const hasNutri = ['a', 'b', 'c', 'd', 'e'].includes(officialGrade);
+  const nutriGrade = hasNutri ? applyBeverageSweetenerRule(officialGrade) : officialGrade;
 
-  const nutriGrade = (p.nutriscore_grade || '').toLowerCase();
-  const hasNutri = ['a', 'b', 'c', 'd', 'e'].includes(nutriGrade);
   const nonScorableAlcohol = p.category === 'food' && isAlcoholicFood(p);
   // Alcoholic beverages are out of Nutri-Score scope. The ResultPage renders
   // them via the "non-scorable" branch (no score circles), so this function

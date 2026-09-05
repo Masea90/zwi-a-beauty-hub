@@ -150,6 +150,22 @@ function stripDiacritics(s: string): string {
 const norm = (s: string) => stripDiacritics(String(s || '').toLowerCase());
 const escRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+// Non-nutritive (intense) sweeteners — Nutri-Score 2023 beverage penalty.
+// Polyols (E420 sorbitol, E421 mannitol, E965 maltitol, E967 xylitol,
+// E968 erythritol) are caloric sweeteners and are NOT part of this rule.
+const NON_NUTRITIVE_SWEETENERS: RegExp[] = [
+  /\be-?950\b|acesulfam\w*/,                                   // E950
+  /\be-?951\b|\baspartam\w*\b/,                                // E951
+  /\be-?952\b|ciclamat\w*|cyclamat\w*|acido ciclamico|cyclamic acid/, // E952
+  /\be-?954\b|\bsacarina\b|saccharin\w*|sacarinato|saccharine/, // E954
+  /\be-?955\b|\bsucralosa\b|\bsucralose\b/,                    // E955
+  /\be-?960[a-d]?\b|glucosidos? de esteviol|glycosides? de steviol|steviol glycosides?|\bstevia\b|\besteviol\b/, // E960
+  /\be-?961\b|\bneotam\w*\b|\bneotame\b/,                      // E961
+  /\be-?962\b|sal de aspartamo[- ]acesulfamo|aspartame[- ]acesulfame salt/, // E962
+  /\be-?969\b|\badvantam\w*\b/,                                // E969
+];
+
+
 // Manual word-boundary check (no lookbehind). iOS Safari <16.4 crashes on
 // `(?<!\p{L})`, which was silently breaking classification on older iPhones.
 const LETTER_RE = /\p{L}/u;

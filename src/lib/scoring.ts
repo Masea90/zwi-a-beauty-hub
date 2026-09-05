@@ -2,7 +2,7 @@
  * Scoring + personalization rules for the scan result page.
  */
 import type { ProductData } from './productLookup';
-import { computeNutriScore, nutriScoreToNote } from './nutriscore';
+import { computeNutriScore, nutriScoreToNote, detectNutriCategory } from './nutriscore';
 import { ADDITIVES_RISK, ADDITIVE_NAME_SYNONYMS, type AdditiveRiskEntry, type AdditiveRiskLevel } from './additivesRisk';
 
 export type IngredientLevel = 'safe' | 'caution' | 'avoid';

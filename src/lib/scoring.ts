@@ -2,7 +2,7 @@
  * Scoring + personalization rules for the scan result page.
  */
 import type { ProductData } from './productLookup';
-import { computeNutriScore, nutriScoreToNote } from './nutriscore';
+import { computeNutriScore, nutriScoreToNote, detectNutriCategory } from './nutriscore';
 import { ADDITIVES_RISK, ADDITIVE_NAME_SYNONYMS, type AdditiveRiskEntry, type AdditiveRiskLevel } from './additivesRisk';
 
 export type IngredientLevel = 'safe' | 'caution' | 'avoid';
@@ -149,6 +149,22 @@ function stripDiacritics(s: string): string {
 }
 const norm = (s: string) => stripDiacritics(String(s || '').toLowerCase());
 const escRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Non-nutritive (intense) sweeteners — Nutri-Score 2023 beverage penalty.
+// Polyols (E420 sorbitol, E421 mannitol, E965 maltitol, E967 xylitol,
+// E968 erythritol) are caloric sweeteners and are NOT part of this rule.
+const NON_NUTRITIVE_SWEETENERS: RegExp[] = [
+  /\be-?950\b|acesulfam\w*/,                                   // E950
+  /\be-?951\b|\baspartam\w*\b/,                                // E951
+  /\be-?952\b|ciclamat\w*|cyclamat\w*|acido ciclamico|cyclamic acid/, // E952
+  /\be-?954\b|\bsacarina\b|saccharin\w*|sacarinato|saccharine/, // E954
+  /\be-?955\b|\bsucralosa\b|\bsucralose\b/,                    // E955
+  /\be-?960[a-d]?\b|glucosidos? de esteviol|glycosides? de steviol|steviol glycosides?|\bstevia\b|\besteviol\b/, // E960
+  /\be-?961\b|\bneotam\w*\b|\bneotame\b/,                      // E961
+  /\be-?962\b|sal de aspartamo[- ]acesulfamo|aspartame[- ]acesulfame salt/, // E962
+  /\be-?969\b|\badvantam\w*\b/,                                // E969
+];
+
 
 // Manual word-boundary check (no lookbehind). iOS Safari <16.4 crashes on
 // `(?<!\p{L})`, which was silently breaking classification on older iPhones.
@@ -810,6 +826,23 @@ export function calculateScoreBreakdown(
     ['xilitol', /\bxilitol\b|\bxylitol\b|\be967\b/],
     ['sacarina', /\bsacarina\b|\bsaccharin\w*\b|\be954\b/],
   ];
+  // Nutri-Score 2023 (rev. 30/03/2023): non-nutritive sweeteners add +4
+  // negative points, but ONLY for beverages. Polyols (E420/E421/E965/E967/
+  // E968) are caloric sweeteners and are explicitly excluded from this rule.
+  const isNutriBeverage = (): boolean => {
+    if (p.category !== 'food') return false;
+    const raw = (p.raw || {}) as Record<string, unknown>;
+    const cats = Array.isArray(raw.categories_tags) ? (raw.categories_tags as string[]) : [];
+    return detectNutriCategory(cats) === 'beverage';
+  };
+  const hasNonNutritiveSweetener = (): boolean => {
+    const raw = (p.raw || {}) as Record<string, unknown>;
+    const hay = norm(
+      `${p.ingredients_text || ''} ${(Array.isArray(raw.additives_tags) ? (raw.additives_tags as string[]) : []).join(' ')}`,
+    );
+    if (!hay.trim()) return false;
+    return NON_NUTRITIVE_SWEETENERS.some(re => re.test(hay));
+  };
   const maybeAddSweetenersNote = () => {
     if (p.category !== 'food') return;
     const raw = (p.raw || {}) as Record<string, unknown>;
@@ -817,6 +850,16 @@ export function calculateScoreBreakdown(
       `${p.ingredients_text || ''} ${(Array.isArray(raw.additives_tags) ? (raw.additives_tags as string[]) : []).join(' ')}`,
     );
     if (!hay.trim()) return;
+    // Beverages: the 2023 revision penalises their presence — say so instead
+    // of the "no penalty" neutral note (which stays for solid foods).
+    if (isNutriBeverage() && hasNonNutritiveSweetener()) {
+      factors.push({
+        label: SWEETENER_BEVERAGE_TEXT[expLang],
+        delta: null,
+        tone: 'negative',
+      });
+      return;
+    }
     const found = SWEETENERS.filter(([, re]) => re.test(hay)).map(([name]) => name);
     if (found.length === 0) return;
     factors.push({
@@ -826,10 +869,28 @@ export function calculateScoreBreakdown(
     });
   };
 
+  // Official grades published before the 2023 beverage revision (or stale OFF
+  // copies) still rate "zero" sodas as B. Re-apply the rule: a sweetened
+  // beverage can never be better than C, and when we can recompute the full
+  // 2023 score ourselves we take the worse of both.
+  const applyBeverageSweetenerRule = (grade: string): string => {
+    if (!isNutriBeverage() || !hasNonNutritiveSweetener()) return grade;
+    const order = ['a', 'b', 'c', 'd', 'e'];
+    let worst = Math.max(order.indexOf(grade), order.indexOf('c'));
+    const raw = (p.raw || {}) as Record<string, unknown>;
+    const nutri = (raw.nutriments && typeof raw.nutriments === 'object')
+      ? raw.nutriments as Record<string, unknown>
+      : {};
+    const cats = Array.isArray(raw.categories_tags) ? (raw.categories_tags as string[]) : [];
+    const computed = computeNutriScore(nutri, cats, raw);
+    if (computed) worst = Math.max(worst, order.indexOf(computed.grade));
+    return order[worst] || grade;
+  };
 
+  const officialGrade = (p.nutriscore_grade || '').toLowerCase();
+  const hasNutri = ['a', 'b', 'c', 'd', 'e'].includes(officialGrade);
+  const nutriGrade = hasNutri ? applyBeverageSweetenerRule(officialGrade) : officialGrade;
 
-  const nutriGrade = (p.nutriscore_grade || '').toLowerCase();
-  const hasNutri = ['a', 'b', 'c', 'd', 'e'].includes(nutriGrade);
   const nonScorableAlcohol = p.category === 'food' && isAlcoholicFood(p);
   // Alcoholic beverages are out of Nutri-Score scope. The ResultPage renders
   // them via the "non-scorable" branch (no score circles), so this function
@@ -1545,6 +1606,14 @@ const PREG_HARD_CHEESE_TEXT: Record<PregLang, string> = {
 
 const pregLang = (l?: string): PregLang =>
   l === 'en' || l === 'fr' ? l : 'es';
+
+/** Explanatory factor for the 2023 beverage sweetener penalty. */
+const SWEETENER_BEVERAGE_TEXT: Record<PregLang, string> = {
+  es: 'Contiene edulcorantes: el Nutri-Score 2023 penaliza su presencia en bebidas',
+  en: 'Contains sweeteners: the 2023 Nutri-Score penalises their presence in beverages',
+  fr: 'Contient des édulcorants : le Nutri-Score 2023 pénalise leur présence dans les boissons',
+};
+
 
 /**
  * "Sin azúcar" diet: a WARNING is not a block. Real report ("Lima limón"):

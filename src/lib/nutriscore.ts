@@ -175,7 +175,7 @@ function fvlPointsBeverage(pct: number): number {
 // -------- sweetener detection -------------------------------------------
 const SWEETENER_ES = new Set([
   'e950', 'e951', 'e952', 'e954', 'e955', 'e957', 'e959', 'e960',
-  'e961', 'e962', 'e968', 'e969',
+  'e961', 'e962', 'e969',
 ]);
 // Sweetener words (es / en / fr / pt + common E-additive brand names).
 const SWEETENER_WORDS = [

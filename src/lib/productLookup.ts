@@ -238,6 +238,9 @@ async function fetchFromMaseya(barcode: string): Promise<ProductData | null> {
   // scoring/NutritionFacts pick them up like any OFF product.
   const nutri = (data as { nutriments?: unknown }).nutriments;
   if (nutri && typeof nutri === 'object') rawObj.nutriments = nutri;
+  // Maseya rows never carry an official grade: our engine (2023 rules) computes it.
+  rawObj.nutriscore_version_used = 'computed';
+
 
   return {
     barcode: data.barcode,

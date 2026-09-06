@@ -158,6 +158,8 @@ const findRearDeviceId = async (currentDeviceId?: string): Promise<string | null
 const RESCAN_COOLDOWN_MS = 4000;
 /** A barcode must be decoded identically this many times in a row to be accepted. */
 const CONFIRM_READS = 2;
+/** A pending (unconfirmed) read older than this is discarded. */
+const CONFIRM_TIMEOUT_MS = 1500;
 const LAST_DECODE_KEY = 'maseya_last_decode';
 
 const stopStream = (stream: MediaStream | null) => {
@@ -200,6 +202,8 @@ const ScannerPage = () => {
   // Double-read confirmation state (see onDecoded).
   const pendingCodeRef = useRef<string | null>(null);
   const pendingCountRef = useRef<number>(0);
+  const pendingAtRef = useRef<number>(0);
+  const pendingTimerRef = useRef<number | null>(null);
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(LAST_DECODE_KEY);
@@ -222,6 +226,12 @@ const ScannerPage = () => {
       clearInterval(zxingRotateTimerRef.current);
       zxingRotateTimerRef.current = null;
     }
+    if (pendingTimerRef.current !== null) {
+      clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = null;
+    }
+    pendingCodeRef.current = null;
+    pendingCountRef.current = 0;
     stopStream(activeStreamRef.current);
     activeStreamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
@@ -340,8 +350,9 @@ const ScannerPage = () => {
     return stream;
   };
 
-  const onDecoded = (decodedText: string) => {
-    if (!decodedText || stoppedRef.current) return;
+  /** @returns true only when the code was ACCEPTED (confirmed + navigating). */
+  const onDecoded = (decodedText: string): boolean => {
+    if (!decodedText || stoppedRef.current) return false;
     // Coming back from a product sheet with the same barcode still in front of
     // the camera used to re-open that product instantly, which felt like the
     // app navigating on its own. Ignore the last barcode for a short window.
@@ -349,7 +360,18 @@ const ScannerPage = () => {
       decodedText === lastDecodedRef.current &&
       Date.now() - lastDecodedAtRef.current < RESCAN_COOLDOWN_MS
     ) {
-      return;
+      return false;
+    }
+
+    // Drop a stale pending read: a one-off misread must not sit there forever
+    // waiting for a confirmation that will never arrive.
+    if (
+      pendingCodeRef.current !== null &&
+      Date.now() - pendingAtRef.current > CONFIRM_TIMEOUT_MS
+    ) {
+      console.info('[scanner] pending read expired, discarding', pendingCodeRef.current);
+      pendingCodeRef.current = null;
+      pendingCountRef.current = 0;
     }
 
     // Double-read confirmation: a single decode can carry flipped digits on a
@@ -358,13 +380,23 @@ const ScannerPage = () => {
     if (pendingCodeRef.current !== decodedText) {
       pendingCodeRef.current = decodedText;
       pendingCountRef.current = 1;
+      pendingAtRef.current = Date.now();
+      if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = window.setTimeout(() => {
+        pendingTimerRef.current = null;
+        if (pendingCodeRef.current === null) return;
+        console.info('[scanner] pending read expired, discarding', pendingCodeRef.current);
+        pendingCodeRef.current = null;
+        pendingCountRef.current = 0;
+      }, CONFIRM_TIMEOUT_MS) as unknown as number;
       console.info('[scanner] first read, waiting for confirmation', decodedText);
-      return;
+      return false;
     }
     pendingCountRef.current += 1;
-    if (pendingCountRef.current < CONFIRM_READS) return;
+    if (pendingCountRef.current < CONFIRM_READS) return false;
     pendingCodeRef.current = null;
     pendingCountRef.current = 0;
+    if (pendingTimerRef.current !== null) { clearTimeout(pendingTimerRef.current); pendingTimerRef.current = null; }
     console.info('[scanner] confirmed barcode', decodedText);
 
     lastDecodedRef.current = decodedText;
@@ -385,6 +417,7 @@ const ScannerPage = () => {
     activeStreamRef.current = null;
     setPhase('analyzing');
     navigate(`/result/${encodeURIComponent(decodedText)}`);
+    return true;
   };
 
   const startNative = async (detector: BarcodeDetectorLike) => {
@@ -407,8 +440,11 @@ const ScannerPage = () => {
         try {
           const codes = await detector.detect(canvas);
           if (codes && codes.length > 0 && codes[0].rawValue) {
-            onDecoded(codes[0].rawValue);
-            return;
+            // Only stop the loop when the code was ACCEPTED. A first,
+            // unconfirmed read must keep the loop alive so the second one
+            // can arrive.
+            const accepted = onDecoded(codes[0].rawValue);
+            if (accepted || stoppedRef.current) return;
           }
         } catch {
           // ignore transient detection errors

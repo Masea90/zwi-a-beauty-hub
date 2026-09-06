@@ -158,6 +158,8 @@ const findRearDeviceId = async (currentDeviceId?: string): Promise<string | null
 const RESCAN_COOLDOWN_MS = 4000;
 /** A barcode must be decoded identically this many times in a row to be accepted. */
 const CONFIRM_READS = 2;
+/** A pending (unconfirmed) read older than this is discarded. */
+const CONFIRM_TIMEOUT_MS = 1500;
 const LAST_DECODE_KEY = 'maseya_last_decode';
 
 const stopStream = (stream: MediaStream | null) => {

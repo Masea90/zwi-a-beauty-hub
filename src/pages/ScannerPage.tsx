@@ -424,8 +424,11 @@ const ScannerPage = () => {
         try {
           const codes = await detector.detect(canvas);
           if (codes && codes.length > 0 && codes[0].rawValue) {
-            onDecoded(codes[0].rawValue);
-            return;
+            // Only stop the loop when the code was ACCEPTED. A first,
+            // unconfirmed read must keep the loop alive so the second one
+            // can arrive.
+            const accepted = onDecoded(codes[0].rawValue);
+            if (accepted || stoppedRef.current) return;
           }
         } catch {
           // ignore transient detection errors

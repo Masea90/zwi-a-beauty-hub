@@ -614,10 +614,12 @@ const ResultPage = () => {
 
     const flagged = flagIngredients(product);
     const score = calculateScoreBreakdown(product, flagged).score;
-    if (product.barcode && product.barcode !== 'photo') {
+    // Counter is restricted to signed-in callers (anonymous execution revoked).
+    if (isAuthenticated && currentUser?.id && product.barcode && product.barcode !== 'photo') {
       supabase.rpc('increment_product_scan_count', { p_barcode: product.barcode })
         .then(({ error }) => { if (error) console.warn('[scan_count]', error.message); });
     }
+
 
     if (isAuthenticated && currentUser?.id) {
       supabase.from('scan_history').insert([{

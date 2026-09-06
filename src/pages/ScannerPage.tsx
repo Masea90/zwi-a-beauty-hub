@@ -374,6 +374,14 @@ const ScannerPage = () => {
       pendingCodeRef.current = decodedText;
       pendingCountRef.current = 1;
       pendingAtRef.current = Date.now();
+      if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = window.setTimeout(() => {
+        pendingTimerRef.current = null;
+        if (pendingCodeRef.current === null) return;
+        console.info('[scanner] pending read expired, discarding', pendingCodeRef.current);
+        pendingCodeRef.current = null;
+        pendingCountRef.current = 0;
+      }, CONFIRM_TIMEOUT_MS) as unknown as number;
       console.info('[scanner] first read, waiting for confirmation', decodedText);
       return false;
     }

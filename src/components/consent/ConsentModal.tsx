@@ -21,6 +21,7 @@ const COPY = {
     healthConsentLabel: 'Acepto el tratamiento de mis datos de salud (alergias, tipo de piel, embarazo) para personalizar los análisis.',
     healthConsentHint: 'Sin este consentimiento la app sigue funcionando, pero solo con análisis generales (sin personalización). Puedes cambiarlo en cualquier momento.',
     privacyPolicy: 'Política de privacidad',
+    cookiesPolicy: 'Política de cookies',
     savePreferences: 'Guardar mis preferencias',
   },
   en: {
@@ -31,6 +32,7 @@ const COPY = {
     healthConsentLabel: 'I agree to the processing of my health data (allergies, skin type, pregnancy) to personalize the analyses.',
     healthConsentHint: 'Without this consent the app still works, but only with general analyses (no personalization). You can change this anytime.',
     privacyPolicy: 'Privacy policy',
+    cookiesPolicy: 'Cookie policy',
     savePreferences: 'Save my preferences',
   },
   fr: {
@@ -41,6 +43,7 @@ const COPY = {
     healthConsentLabel: "J'accepte le traitement de mes données de santé (allergies, type de peau, grossesse) pour personnaliser les analyses.",
     healthConsentHint: "Sans ce consentement, l'app fonctionne toujours, mais avec des analyses générales uniquement (sans personnalisation). Tu peux changer cela à tout moment.",
     privacyPolicy: 'Politique de confidentialité',
+    cookiesPolicy: 'Politique de cookies',
     savePreferences: 'Enregistrer mes préférences',
   },
 };
@@ -259,6 +262,16 @@ export const ConsentModal = ({ onAcceptEssential }: ConsentModalProps) => {
           >
             {c.moreInfo}
           </button>
+          <p className="text-center text-[11px] text-muted-foreground">
+            <a
+              href="/cookies"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+            >
+              {c.cookiesPolicy}
+            </a>
+          </p>
         </div>
       </div>
 
@@ -326,6 +339,15 @@ export const ConsentModal = ({ onAcceptEssential }: ConsentModalProps) => {
                         rel="noopener noreferrer"
                       >
                         {c.privacyPolicy}
+                      </a>{' '}
+                      ·{' '}
+                      <a
+                        href="/cookies"
+                        className="underline underline-offset-2"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {c.cookiesPolicy}
                       </a>
                       .
                     </p>

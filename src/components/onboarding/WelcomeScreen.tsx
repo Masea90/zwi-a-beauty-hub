@@ -123,6 +123,12 @@ export const WelcomeScreen = () => {
         >
           {c.howItWorks}
         </button>
+        <button
+          onClick={() => navigate('/aviso-legal')}
+          className="block mx-auto text-[11px] text-white/60 underline-offset-4 hover:underline"
+        >
+          Aviso legal
+        </button>
       </div>
     </div>
   );

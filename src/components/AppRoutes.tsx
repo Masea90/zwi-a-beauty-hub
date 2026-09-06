@@ -24,6 +24,8 @@ import NotFound from '@/pages/NotFound';
 import OAuthConsentPage from '@/pages/OAuthConsentPage';
 import PrivacyPage from '@/pages/PrivacyPage';
 import HowItWorksPage from '@/pages/HowItWorksPage';
+import CookiesPage from '@/pages/CookiesPage';
+import LegalNoticePage from '@/pages/LegalNoticePage';
 
 
 const ONBOARDING_KEY = 'maseya_onboarding';
@@ -119,7 +121,7 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
 
   // Authenticated user without a health profile → force quiz (skip welcome).
   if (userId && !onboardingDone) {
-    const allowedForQuiz = ['/onboarding/quiz', '/onboarding/language', '/update-password', '/admin', '/privacy', '/como-funciona'];
+    const allowedForQuiz = ['/onboarding/quiz', '/onboarding/language', '/update-password', '/admin', '/privacy', '/como-funciona', '/cookies', '/aviso-legal'];
     if (!allowedForQuiz.includes(path)) {
       return <Navigate to="/onboarding/quiz" replace />;
     }
@@ -128,7 +130,7 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
 
   // Anonymous user without onboarding → welcome flow (unless they chose to skip).
   if (!userId && !onboardingDone && !anonymousSkipped) {
-    const allowed = ['/welcome', '/onboarding/quiz', '/onboarding/language', '/update-password', '/login', '/reset-password', '/privacy', '/como-funciona'];
+    const allowed = ['/welcome', '/onboarding/quiz', '/onboarding/language', '/update-password', '/login', '/reset-password', '/privacy', '/como-funciona', '/cookies', '/aviso-legal'];
     if (!allowed.includes(path)) {
       return <Navigate to="/welcome" replace />;
     }
@@ -179,6 +181,8 @@ export function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/como-funciona" element={<HowItWorksPage />} />
+          <Route path="/cookies" element={<CookiesPage />} />
+          <Route path="/aviso-legal" element={<LegalNoticePage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/update-password" element={<UpdatePasswordPage />} />
           <Route path="/welcome" element={<WelcomeScreen />} />
@@ -217,6 +221,8 @@ export function AppRoutes() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/como-funciona" element={<HowItWorksPage />} />
+          <Route path="/cookies" element={<CookiesPage />} />
+          <Route path="/aviso-legal" element={<LegalNoticePage />} />
 
         <Route path="/update-password" element={<UpdatePasswordPage />} />
 

@@ -425,6 +425,8 @@ const ProfilePage = () => {
 
         <p className="text-center text-xs text-muted-foreground space-x-3">
           <a href="/privacy" className="underline underline-offset-2">Política de privacidad</a>
+          <a href="/cookies" className="underline underline-offset-2">Política de cookies</a>
+          <a href="/aviso-legal" className="underline underline-offset-2">Aviso legal</a>
           <a href="/como-funciona" className="underline underline-offset-2">Cómo funciona Maseya</a>
         </p>
 

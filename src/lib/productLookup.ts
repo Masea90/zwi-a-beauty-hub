@@ -159,6 +159,9 @@ const normalize = (
 ): ProductData => {
   const p = json.product ?? {};
   const picked = pickIngredientsText(p, lang);
+  const nutri = pickNutriscoreGrade(p as unknown as Record<string, unknown>);
+  const raw: Record<string, unknown> = { ...((p as unknown as Record<string, unknown>) ?? {}) };
+  raw.nutriscore_version_used = nutri.version;
   return {
     barcode,
     source,
@@ -166,7 +169,7 @@ const normalize = (
     name: p.product_name_es || p.product_name || 'Producto sin nombre',
     brand: p.brands || '',
     image: p.image_front_url || p.image_url || null,
-    nutriscore_grade: p.nutriscore_grade || null,
+    nutriscore_grade: nutri.grade,
     ingredients_text: picked.text,
     ingredients_lang: picked.lang,
     ingredients_tags: p.ingredients_tags || [],
@@ -174,9 +177,10 @@ const normalize = (
     ingredients_analysis_tags: p.ingredients_analysis_tags || [],
     allergens_tags: p.allergens_tags || [],
     traces_tags: p.traces_tags || [],
-    raw: (p as unknown as Record<string, unknown>) ?? {},
+    raw,
   };
 };
+
 
 async function fetchFromMaseya(barcode: string): Promise<ProductData | null> {
   const { data, error } = await supabase

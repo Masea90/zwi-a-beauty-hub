@@ -203,6 +203,7 @@ const ScannerPage = () => {
   const pendingCodeRef = useRef<string | null>(null);
   const pendingCountRef = useRef<number>(0);
   const pendingAtRef = useRef<number>(0);
+  const pendingTimerRef = useRef<number | null>(null);
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(LAST_DECODE_KEY);
@@ -225,6 +226,12 @@ const ScannerPage = () => {
       clearInterval(zxingRotateTimerRef.current);
       zxingRotateTimerRef.current = null;
     }
+    if (pendingTimerRef.current !== null) {
+      clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = null;
+    }
+    pendingCodeRef.current = null;
+    pendingCountRef.current = 0;
     stopStream(activeStreamRef.current);
     activeStreamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
@@ -389,6 +396,7 @@ const ScannerPage = () => {
     if (pendingCountRef.current < CONFIRM_READS) return false;
     pendingCodeRef.current = null;
     pendingCountRef.current = 0;
+    if (pendingTimerRef.current !== null) { clearTimeout(pendingTimerRef.current); pendingTimerRef.current = null; }
     console.info('[scanner] confirmed barcode', decodedText);
 
     lastDecodedRef.current = decodedText;

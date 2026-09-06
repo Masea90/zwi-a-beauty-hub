@@ -202,6 +202,7 @@ const ScannerPage = () => {
   // Double-read confirmation state (see onDecoded).
   const pendingCodeRef = useRef<string | null>(null);
   const pendingCountRef = useRef<number>(0);
+  const pendingAtRef = useRef<number>(0);
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(LAST_DECODE_KEY);

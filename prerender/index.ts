@@ -15,6 +15,15 @@ import path from 'node:path';
 import type { Plugin } from 'vite';
 import { HOW_IT_WORKS_COPY } from '../src/content/howItWorks';
 import { WELCOME_COPY } from '../src/content/welcome';
+import {
+  COOKIES_INTRO,
+  COOKIES_META,
+  COOKIES_SECTIONS,
+  LEGAL_NOTICE_META,
+  LEGAL_NOTICE_SECTIONS,
+  LEGAL_UPDATED,
+  type LegalSection,
+} from '../src/content/legal';
 
 const SITE = 'https://maseya.es';
 
@@ -122,6 +131,45 @@ function privacyHtml(): string {
   ].join('');
 }
 
+const table = (headers: string[], rows: string[][]) =>
+  `<table><thead><tr>${headers
+    .map((h) => `<th>${esc(h)}</th>`)
+    .join('')}</tr></thead><tbody>${rows
+    .map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`)
+    .join('')}</tbody></table>`;
+
+const sectionsHtml = (sections: LegalSection[]) =>
+  sections
+    .map(
+      (s) =>
+        `<section><h2>${esc(s.title)}</h2>${(s.paragraphs ?? []).map(p).join('')}${
+          s.items ? ul(s.items) : ''
+        }${s.table ? table(s.table.headers, s.table.rows) : ''}${s.note ? p(s.note) : ''}</section>`,
+    )
+    .join('');
+
+function cookiesHtml(): string {
+  return [
+    '<div>',
+    '<h1>Política de cookies</h1>',
+    p(COOKIES_INTRO),
+    sectionsHtml(COOKIES_SECTIONS),
+    p(LEGAL_UPDATED),
+    '</div>',
+  ].join('');
+}
+
+function legalNoticeHtml(): string {
+  return [
+    '<div>',
+    '<h1>Aviso legal</h1>',
+    sectionsHtml(LEGAL_NOTICE_SECTIONS),
+    '<p><a href="/privacy">Política de privacidad</a> · <a href="/cookies">Política de cookies</a></p>',
+    p(LEGAL_UPDATED),
+    '</div>',
+  ].join('');
+}
+
 type Route = {
   out: string;
   url: string;
@@ -153,6 +201,20 @@ const routes = (): Route[] => [
     description:
       'Cómo trata Maseya tus datos: responsable, finalidades, base legal, conservación y tus derechos según el RGPD.',
     body: privacyHtml,
+  },
+  {
+    out: path.join('cookies', 'index.html'),
+    url: `${SITE}/cookies`,
+    title: COOKIES_META.title,
+    description: COOKIES_META.description,
+    body: cookiesHtml,
+  },
+  {
+    out: path.join('aviso-legal', 'index.html'),
+    url: `${SITE}/aviso-legal`,
+    title: LEGAL_NOTICE_META.title,
+    description: LEGAL_NOTICE_META.description,
+    body: legalNoticeHtml,
   },
 ];
 
@@ -208,7 +270,7 @@ export function prerenderPlugin(): Plugin {
           fs.writeFileSync(target, html, 'utf8');
         }
         // eslint-disable-next-line no-console
-        console.log('[prerender] wrote /, /como-funciona, /privacy');
+        console.log('[prerender] wrote /, /como-funciona, /privacy, /cookies, /aviso-legal');
       } catch (e) {
         // Never fail the build because of SEO markup.
         // eslint-disable-next-line no-console

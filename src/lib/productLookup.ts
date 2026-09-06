@@ -2,6 +2,7 @@
  * Product lookup — Maseya DB → Open Food Facts → Open Beauty Facts.
  */
 import { supabase } from '@/integrations/supabase/client';
+import { computeNutriScore, detectNutriCategory } from '@/lib/nutriscore';
 
 export type ProductSource = 'maseya' | 'off' | 'obf' | 'photo';
 
@@ -150,6 +151,47 @@ const fetchFrom = async (host: string, barcode: string): Promise<OFFResponse | n
 };
 
 
+/**
+ * Surgical override of the OFF Nutri-Score letter.
+ *
+ * Real case: two identical bags of cashews got B and D. The 2023 algorithm
+ * applies a dedicated scale to fats/oils/nuts/seeds so their natural fat does
+ * not sink them. OFF only applies it when the product sits in a specific
+ * category branch (`nutriscore.2023.data.is_fat_oil_nuts_seeds`); one bag was
+ * tagged `en:cashew-nuts` (scale applied) and the other only `en:nuts`
+ * (general scale → D). Categories are NOT empty in either case, so an
+ * "empty/generic categories" test would never fire.
+ *
+ * Rule (narrow on purpose): only when OUR engine recognises the product as
+ * fats/oils/nuts/seeds while OFF did not apply that scale, and the nutrition
+ * table is complete, do we recompute the letter with our own 2023 engine.
+ * Everything else keeps the OFF letter untouched.
+ */
+function resolveNutriscoreGrade(
+  p: Record<string, unknown>,
+  offGrade: string | null
+): { grade: string | null; source: 'off' | 'computed' } {
+  if (!offGrade) return { grade: offGrade, source: 'off' };
+  const cats = Array.isArray(p.categories_tags) ? (p.categories_tags as string[]) : [];
+  if (detectNutriCategory(cats) !== 'fat') return { grade: offGrade, source: 'off' };
+
+  const ns2023 = ((p.nutriscore as Record<string, unknown> | undefined)?.['2023']) as
+    | Record<string, unknown>
+    | undefined;
+  const offData = ns2023?.data as Record<string, unknown> | undefined;
+  const offAppliedFatScale = Number(offData?.is_fat_oil_nuts_seeds ?? 0) === 1;
+  if (offAppliedFatScale) return { grade: offGrade, source: 'off' };
+
+  const nutriments = (p.nutriments && typeof p.nutriments === 'object')
+    ? (p.nutriments as Record<string, unknown>)
+    : null;
+  if (!nutrimentsHaveTable(nutriments)) return { grade: offGrade, source: 'off' };
+
+  const computed = computeNutriScore(nutriments, cats, p);
+  if (!computed) return { grade: offGrade, source: 'off' };
+  return { grade: computed.grade, source: 'computed' };
+}
+
 const normalize = (
   json: OFFResponse,
   barcode: string,
@@ -162,6 +204,9 @@ const normalize = (
   const nutri = pickNutriscoreGrade(p as unknown as Record<string, unknown>);
   const raw: Record<string, unknown> = { ...((p as unknown as Record<string, unknown>) ?? {}) };
   raw.nutriscore_version_used = nutri.version;
+  const resolved = resolveNutriscoreGrade(raw, nutri.grade);
+  raw.nutriscore_source = resolved.source;
+  if (resolved.source === 'computed') raw.nutriscore_grade_off = nutri.grade;
   return {
     barcode,
     source,
@@ -169,7 +214,7 @@ const normalize = (
     name: p.product_name_es || p.product_name || 'Producto sin nombre',
     brand: p.brands || '',
     image: p.image_front_url || p.image_url || null,
-    nutriscore_grade: nutri.grade,
+    nutriscore_grade: resolved.grade,
     ingredients_text: picked.text,
     ingredients_lang: picked.lang,
     ingredients_tags: p.ingredients_tags || [],
@@ -180,6 +225,7 @@ const normalize = (
     raw,
   };
 };
+
 
 
 async function fetchFromMaseya(barcode: string): Promise<ProductData | null> {

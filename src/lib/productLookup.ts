@@ -93,6 +93,51 @@ const pickIngredientsText = (
   return fromArray ? { text: fromArray, lang: null } : { text: null, lang: null };
 };
 
+/**
+ * Open Food Facts published a revised Nutri-Score algorithm (2022 for foods,
+ * 2023 for beverages) and keeps BOTH versions during the transition, exposing
+ * them separately (`nutriscore.2021` / `nutriscore.2023`, plus flat
+ * `nutriscore_2023_grade`). The generic `nutriscore_grade` currently mirrors
+ * the 2023 grade, but that is a transition detail we must not depend on: read
+ * the 2023 grade explicitly, and only fall back to the generic field.
+ */
+type NutriVersionUsed = '2023' | 'legacy' | 'computed';
+
+const VALID_GRADES = new Set(['a', 'b', 'c', 'd', 'e']);
+
+const cleanGrade = (v: unknown): string | null => {
+  if (typeof v !== 'string') return null;
+  const g = v.trim().toLowerCase();
+  return VALID_GRADES.has(g) ? g : null;
+};
+
+export function pickNutriscoreGrade(
+  p: Record<string, unknown>
+): { grade: string | null; version: NutriVersionUsed } {
+  // 1. Explicit 2023 algorithm — flat field first, then the nested object.
+  const flat2023 = cleanGrade(p.nutriscore_2023_grade);
+  if (flat2023) return { grade: flat2023, version: '2023' };
+
+  const nested = p.nutriscore;
+  if (nested && typeof nested === 'object') {
+    const v2023 = (nested as Record<string, unknown>)['2023'];
+    if (v2023 && typeof v2023 === 'object') {
+      const g = cleanGrade((v2023 as Record<string, unknown>).grade);
+      if (g) return { grade: g, version: '2023' };
+    }
+  }
+
+  // 2. Generic field (may be the legacy 2021 grade on older sheets).
+  const generic =
+    cleanGrade(p.nutriscore_grade) ??
+    cleanGrade(p.nutrition_grades) ??
+    cleanGrade(p.nutrition_grade_fr);
+  if (generic) return { grade: generic, version: 'legacy' };
+
+  // 3. Nothing usable — our own engine (2023 rules) computes it.
+  return { grade: null, version: 'computed' };
+}
+
 const fetchFrom = async (host: string, barcode: string): Promise<OFFResponse | null> => {
   try {
     const res = await fetch(`https://${host}/api/v2/product/${encodeURIComponent(barcode)}.json`);
@@ -103,6 +148,7 @@ const fetchFrom = async (host: string, barcode: string): Promise<OFFResponse | n
     return null;
   }
 };
+
 
 const normalize = (
   json: OFFResponse,

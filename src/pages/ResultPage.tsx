@@ -18,6 +18,7 @@ import {
 import { getVoiceLine } from '@/lib/voiceLines';
 import { track } from '@/lib/analytics';
 import { inciLabel } from '@/lib/inciLabels';
+import { evaluateJunkRecord } from '@/lib/junkRecord';
 import { RegistrationSheet } from '@/components/auth/RegistrationSheet';
 import { MiraAnalysis } from '@/components/result/MiraAnalysis';
 import { Alternatives } from '@/components/result/Alternatives';
@@ -46,6 +47,8 @@ const COPY = {
     fueraDeAmbito: 'Fuera de ámbito',
     noEstaEnBaseTitle: 'Este producto no está en nuestra base',
     noEstaEnBaseBody: 'Añádelo con unas fotos y lo analizamos al momento (y ayudas a quien lo escanee después).',
+    datosNoFiablesTitle: 'No tenemos datos fiables de este producto',
+    datosNoFiablesBody: 'La información que hay en la base pública está incompleta o es incorrecta. ¿Nos ayudas a añadirlo bien? Ayudarás a quien lo escanee después.',
     fotografiarProducto: 'Fotografiar el producto',
     productoNoEncontrado: 'Producto no encontrado',
     fueraDeAmbitoBody: 'Maseya analiza alimentación y cosmética 📚 — este código corresponde a otro tipo de producto.',
@@ -128,6 +131,8 @@ const COPY = {
     fueraDeAmbito: 'Out of scope',
     noEstaEnBaseTitle: "This product isn't in our database",
     noEstaEnBaseBody: 'Add it with a few photos and we analyze it right away (and help whoever scans it next).',
+    datosNoFiablesTitle: 'We have no reliable data for this product',
+    datosNoFiablesBody: 'The information in the public database is incomplete or incorrect. Want to help us add it properly? You will help whoever scans it next.',
     fotografiarProducto: 'Photograph the product',
     productoNoEncontrado: 'Product not found',
     fueraDeAmbitoBody: 'Maseya analyzes food and cosmetics 📚 — this barcode belongs to another type of product.',
@@ -210,6 +215,8 @@ const COPY = {
     fueraDeAmbito: 'Hors périmètre',
     noEstaEnBaseTitle: "Ce produit n'est pas dans notre base",
     noEstaEnBaseBody: "Ajoute-le avec quelques photos et on l'analyse tout de suite (et tu aides la prochaine personne qui le scanne).",
+    datosNoFiablesTitle: "Nous n'avons pas de données fiables sur ce produit",
+    datosNoFiablesBody: "Les informations de la base publique sont incomplètes ou incorrectes. Tu nous aides à bien l'ajouter ? Tu aideras la prochaine personne qui le scanne.",
     fotografiarProducto: 'Photographier le produit',
     productoNoEncontrado: 'Produit non trouvé',
     fueraDeAmbitoBody: 'Maseya analyse l’alimentation et les cosmétiques 📚 — ce code correspond à un autre type de produit.',
@@ -331,6 +338,7 @@ const ResultPage = () => {
   const [loading, setLoading] = useState(true);
   const [enriching, setEnriching] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [junkRecord, setJunkRecord] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   
 
@@ -548,8 +556,18 @@ const ResultPage = () => {
       const data = await lookupProduct(barcode, user.language);
       if (cancelled) return;
       if (data) {
+        const merged = mergeFreshPhoto(data);
+        const verdict = evaluateJunkRecord(merged);
+        if (verdict.junk) {
+          console.debug('[result] junk record', barcode, verdict.reasons);
+          track('junk_record_detected', { barcode });
+          setJunkRecord(true);
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
         track('scan_success', { barcode, source: data.source, category: data.category });
-        setProduct(mergeFreshPhoto(data));
+        setProduct(merged);
         setLoading(false);
         return;
       }
@@ -576,8 +594,18 @@ const ResultPage = () => {
         setLoading(false);
         return;
       }
+      const mergedRetry = mergeFreshPhoto(retry);
+      const retryVerdict = evaluateJunkRecord(mergedRetry);
+      if (retryVerdict.junk) {
+        console.debug('[result] junk record', barcode, retryVerdict.reasons);
+        track('junk_record_detected', { barcode });
+        setJunkRecord(true);
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
       track('scan_success', { barcode, source: retry.source, category: retry.category });
-      setProduct(mergeFreshPhoto(retry));
+      setProduct(mergedRetry);
       setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -679,7 +707,7 @@ const ResultPage = () => {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="font-display text-lg font-semibold">
-              {isBookOrPress ? c.fueraDeAmbito : c.noEstaEnBaseTitle}
+              {isBookOrPress ? c.fueraDeAmbito : junkRecord ? c.datosNoFiablesTitle : c.noEstaEnBaseTitle}
             </h1>
           </div>
         </header>
@@ -687,7 +715,9 @@ const ResultPage = () => {
           <p className="text-muted-foreground">
             {isBookOrPress
               ? c.fueraDeAmbitoBody
-              : c.noEstaEnBaseBody}
+              : junkRecord
+                ? c.datosNoFiablesBody
+                : c.noEstaEnBaseBody}
           </p>
           {isBookOrPress ? (
             <Button onClick={() => navigate('/scan', { replace: true })} className="w-full h-12 rounded-2xl">

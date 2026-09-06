@@ -342,8 +342,9 @@ const ScannerPage = () => {
     return stream;
   };
 
-  const onDecoded = (decodedText: string) => {
-    if (!decodedText || stoppedRef.current) return;
+  /** @returns true only when the code was ACCEPTED (confirmed + navigating). */
+  const onDecoded = (decodedText: string): boolean => {
+    if (!decodedText || stoppedRef.current) return false;
     // Coming back from a product sheet with the same barcode still in front of
     // the camera used to re-open that product instantly, which felt like the
     // app navigating on its own. Ignore the last barcode for a short window.
@@ -351,7 +352,18 @@ const ScannerPage = () => {
       decodedText === lastDecodedRef.current &&
       Date.now() - lastDecodedAtRef.current < RESCAN_COOLDOWN_MS
     ) {
-      return;
+      return false;
+    }
+
+    // Drop a stale pending read: a one-off misread must not sit there forever
+    // waiting for a confirmation that will never arrive.
+    if (
+      pendingCodeRef.current !== null &&
+      Date.now() - pendingAtRef.current > CONFIRM_TIMEOUT_MS
+    ) {
+      console.info('[scanner] pending read expired, discarding', pendingCodeRef.current);
+      pendingCodeRef.current = null;
+      pendingCountRef.current = 0;
     }
 
     // Double-read confirmation: a single decode can carry flipped digits on a
@@ -360,11 +372,12 @@ const ScannerPage = () => {
     if (pendingCodeRef.current !== decodedText) {
       pendingCodeRef.current = decodedText;
       pendingCountRef.current = 1;
+      pendingAtRef.current = Date.now();
       console.info('[scanner] first read, waiting for confirmation', decodedText);
-      return;
+      return false;
     }
     pendingCountRef.current += 1;
-    if (pendingCountRef.current < CONFIRM_READS) return;
+    if (pendingCountRef.current < CONFIRM_READS) return false;
     pendingCodeRef.current = null;
     pendingCountRef.current = 0;
     console.info('[scanner] confirmed barcode', decodedText);

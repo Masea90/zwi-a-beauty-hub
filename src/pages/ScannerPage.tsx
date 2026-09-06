@@ -400,6 +400,7 @@ const ScannerPage = () => {
     activeStreamRef.current = null;
     setPhase('analyzing');
     navigate(`/result/${encodeURIComponent(decodedText)}`);
+    return true;
   };
 
   const startNative = async (detector: BarcodeDetectorLike) => {

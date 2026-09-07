@@ -619,7 +619,7 @@ const ResultPage = () => {
         return;
       }
       const mergedRetry = mergeFreshPhoto(retry);
-      const retryVerdict = evaluateJunkRecord(mergedRetry);
+      const retryVerdict = hasContribution ? { junk: false, reasons: [] } : evaluateJunkRecord(mergedRetry);
       if (retryVerdict.junk) {
         console.debug('[result] junk record', barcode, retryVerdict.reasons);
         track('junk_record_detected', { barcode });

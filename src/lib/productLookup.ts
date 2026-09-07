@@ -464,6 +464,13 @@ export async function lookupProduct(barcode: string, language?: string): Promise
   const maseya = await fetchFromMaseya(barcode);
   const maseyaHasIngredients = !!maseya && (maseya.ingredients_text || '').trim().length > 0;
 
+  // A public sheet that our junk heuristic rejects must NEVER win over a
+  // contributed (photo) row: otherwise the contributor keeps being sent back
+  // to the photo flow for the product they just added.
+  if (publicHit && maseyaHasIngredients && evaluateJunkRecord(publicHit).junk) {
+    return mergePublicIntoMaseya(maseya!, publicHit);
+  }
+
   // Rich public with ingredients but no nutrition table → keep the public data
   // and graft the photographed nutriments (and image) on top.
   if (publicHit && publicRich && publicHasIngredients && maseya) {

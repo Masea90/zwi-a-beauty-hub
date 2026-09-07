@@ -376,6 +376,10 @@ function publicHasNutritionTable(pd: ProductData): boolean {
   return nutrimentsHaveTable((pd.raw as Record<string, unknown> | undefined)?.nutriments);
 }
 
+const PLACEHOLDER_NAMES = ['producto sin nombre', 'unknown product', 'sin nombre', 'produit sans nom'];
+const isPlaceholderName = (n: string) =>
+  !n.trim() || PLACEHOLDER_NAMES.includes(n.trim().toLowerCase()) || n.trim().length < 3;
+
 /** Merge maseya ingredients (and nutriments) into a public hit. */
 function mergeMaseyaIntoPublic(publicHit: ProductData, maseya: ProductData): ProductData {
   const raw: Record<string, unknown> = { ...publicHit.raw };

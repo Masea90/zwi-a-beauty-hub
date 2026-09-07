@@ -3,6 +3,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { computeNutriScore, detectNutriCategory } from '@/lib/nutriscore';
+import { evaluateJunkRecord } from '@/lib/junkRecord';
 
 export type ProductSource = 'maseya' | 'off' | 'obf' | 'photo';
 
@@ -376,6 +377,10 @@ function publicHasNutritionTable(pd: ProductData): boolean {
   return nutrimentsHaveTable((pd.raw as Record<string, unknown> | undefined)?.nutriments);
 }
 
+const PLACEHOLDER_NAMES = ['producto sin nombre', 'unknown product', 'sin nombre', 'produit sans nom'];
+const isPlaceholderName = (n: string) =>
+  !n.trim() || PLACEHOLDER_NAMES.includes(n.trim().toLowerCase()) || n.trim().length < 3;
+
 /** Merge maseya ingredients (and nutriments) into a public hit. */
 function mergeMaseyaIntoPublic(publicHit: ProductData, maseya: ProductData): ProductData {
   const raw: Record<string, unknown> = { ...publicHit.raw };
@@ -395,6 +400,9 @@ function mergeMaseyaIntoPublic(publicHit: ProductData, maseya: ProductData): Pro
   }
   return {
     ...publicHit,
+    name: isPlaceholderName(publicHit.name) && !isPlaceholderName(maseya.name) ? maseya.name : publicHit.name,
+    brand: publicHit.brand || maseya.brand || '',
+    category: publicHit.category === 'unknown' && maseya.category !== 'unknown' ? maseya.category : publicHit.category,
     ingredients_text: publicHit.ingredients_text || maseya.ingredients_text || null,
     ingredients_lang: publicHit.ingredients_text ? publicHit.ingredients_lang ?? null : null,
     image: publicHit.image || maseya.image || null,
@@ -456,6 +464,13 @@ export async function lookupProduct(barcode: string, language?: string): Promise
 
   const maseya = await fetchFromMaseya(barcode);
   const maseyaHasIngredients = !!maseya && (maseya.ingredients_text || '').trim().length > 0;
+
+  // A public sheet that our junk heuristic rejects must NEVER win over a
+  // contributed (photo) row: otherwise the contributor keeps being sent back
+  // to the photo flow for the product they just added.
+  if (publicHit && maseyaHasIngredients && evaluateJunkRecord(publicHit).junk) {
+    return mergePublicIntoMaseya(maseya!, publicHit);
+  }
 
   // Rich public with ingredients but no nutrition table → keep the public data
   // and graft the photographed nutriments (and image) on top.

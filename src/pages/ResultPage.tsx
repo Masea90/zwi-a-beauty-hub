@@ -524,12 +524,32 @@ const ResultPage = () => {
     // The public lookup can win the race and return a stale/incomplete entry,
     // which is why the user kept seeing "photograph the ingredients" right
     // after finishing the photo flow. Merge the fresh capture on top.
-    const mergeFreshPhoto = (data: ProductData): ProductData => {
+    const readFreshPhoto = (matchBarcode: string): Record<string, unknown> | null => {
       try {
         const raw = localStorage.getItem('maseya_photo_product');
-        if (!raw) return data;
+        if (!raw) return null;
         const p = JSON.parse(raw);
-        if (!p || p.barcode !== data.barcode) return data;
+        if (!p || p.barcode !== matchBarcode) return null;
+        const ing = typeof p.ingredients_text === 'string' ? p.ingredients_text.trim() : '';
+        return ing.length > 0 || (p.nutriments && typeof p.nutriments === 'object') ? p : null;
+      } catch {
+        return null;
+      }
+    };
+    // A contribution the user just made for THIS barcode always wins over the
+    // public sheet — including when that public sheet is a junk record, which
+    // otherwise sent the contributor back to the photo flow in a loop.
+    const hasContribution = !!readFreshPhoto(barcode);
+
+    const isPlaceholder = (n: string) =>
+      !n.trim() || n.trim().length < 3 ||
+      ['producto sin nombre', 'unknown product', 'sin nombre', 'produit sans nom']
+        .includes(n.trim().toLowerCase());
+
+    const mergeFreshPhoto = (data: ProductData): ProductData => {
+      try {
+        const p = readFreshPhoto(data.barcode) as Record<string, any> | null;
+        if (!p) return data;
         const freshIng = typeof p.ingredients_text === 'string' ? p.ingredients_text.trim() : '';
         const currentIng = (data.ingredients_text || '').trim();
         const rawObj: Record<string, unknown> = { ...data.raw };
@@ -537,12 +557,16 @@ const ResultPage = () => {
           rawObj.nutriments = p.nutriments;
         }
         const useFresh = freshIng.length > currentIng.length;
-        if (!useFresh && rawObj.nutriments === data.raw?.nutriments) return data;
-        if (useFresh || (p.nutriments && typeof p.nutriments === 'object')) setFromPhoto(true);
+        setFromPhoto(true);
+        const photoName = typeof p.product_name === 'string' ? p.product_name : '';
+        const photoCat = p.category === 'food' || p.category === 'cosmetic' ? p.category : null;
         return {
           ...data,
+          name: isPlaceholder(data.name) && !isPlaceholder(photoName) ? photoName : data.name,
+          brand: data.brand || (typeof p.brand === 'string' ? p.brand : '') || '',
+          category: data.category === 'unknown' && photoCat ? photoCat : data.category,
           ingredients_text: useFresh ? freshIng : data.ingredients_text,
-          image: data.image || p.image || null,
+          image: data.image || (typeof p.image === 'string' ? p.image : null) || null,
           raw: rawObj,
         };
       } catch (e) {
@@ -557,7 +581,7 @@ const ResultPage = () => {
       if (cancelled) return;
       if (data) {
         const merged = mergeFreshPhoto(data);
-        const verdict = evaluateJunkRecord(merged);
+        const verdict = hasContribution ? { junk: false, reasons: [] } : evaluateJunkRecord(merged);
         if (verdict.junk) {
           console.debug('[result] junk record', barcode, verdict.reasons);
           track('junk_record_detected', { barcode });
@@ -595,7 +619,7 @@ const ResultPage = () => {
         return;
       }
       const mergedRetry = mergeFreshPhoto(retry);
-      const retryVerdict = evaluateJunkRecord(mergedRetry);
+      const retryVerdict = hasContribution ? { junk: false, reasons: [] } : evaluateJunkRecord(mergedRetry);
       if (retryVerdict.junk) {
         console.debug('[result] junk record', barcode, retryVerdict.reasons);
         track('junk_record_detected', { barcode });

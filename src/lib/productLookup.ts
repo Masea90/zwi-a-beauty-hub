@@ -3,6 +3,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { computeNutriScore, detectNutriCategory } from '@/lib/nutriscore';
+import { evaluateJunkRecord } from '@/lib/junkRecord';
 
 export type ProductSource = 'maseya' | 'off' | 'obf' | 'photo';
 

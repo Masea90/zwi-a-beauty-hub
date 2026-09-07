@@ -581,7 +581,7 @@ const ResultPage = () => {
       if (cancelled) return;
       if (data) {
         const merged = mergeFreshPhoto(data);
-        const verdict = evaluateJunkRecord(merged);
+        const verdict = hasContribution ? { junk: false, reasons: [] } : evaluateJunkRecord(merged);
         if (verdict.junk) {
           console.debug('[result] junk record', barcode, verdict.reasons);
           track('junk_record_detected', { barcode });

@@ -399,6 +399,9 @@ function mergeMaseyaIntoPublic(publicHit: ProductData, maseya: ProductData): Pro
   }
   return {
     ...publicHit,
+    name: isPlaceholderName(publicHit.name) && !isPlaceholderName(maseya.name) ? maseya.name : publicHit.name,
+    brand: publicHit.brand || maseya.brand || '',
+    category: publicHit.category === 'unknown' && maseya.category !== 'unknown' ? maseya.category : publicHit.category,
     ingredients_text: publicHit.ingredients_text || maseya.ingredients_text || null,
     ingredients_lang: publicHit.ingredients_text ? publicHit.ingredients_lang ?? null : null,
     image: publicHit.image || maseya.image || null,
